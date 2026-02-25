@@ -82,7 +82,7 @@ _init_state()
 
 # ── Navigation helper ────────────────────────────────────────────────────
 def _advance_to_next_item():
-    """Advance sidebar selection to the next audit item."""
+    """Schedule navigation to the next audit item (consumed before widgets render)."""
     section_keys = list(SECTIONS.keys())
     current_section = st.session_state.get("aud_section", section_keys[0])
     current_criterion = st.session_state.get("aud_criterion", "")
@@ -92,17 +92,18 @@ def _advance_to_next_item():
     if current_criterion in criteria_ids:
         idx = criteria_ids.index(current_criterion)
         if idx + 1 < len(criteria_ids):
-            st.session_state.aud_criterion = criteria_ids[idx + 1]
+            st.session_state._nav_section = current_section
+            st.session_state._nav_criterion = criteria_ids[idx + 1]
             return True
 
     sec_idx = section_keys.index(current_section) if current_section in section_keys else 0
     if sec_idx + 1 < len(section_keys):
         next_sec = section_keys[sec_idx + 1]
-        st.session_state.aud_section = next_sec
         next_criteria = get_criteria_by_section(next_sec)
         if next_criteria:
-            st.session_state.aud_criterion = next_criteria[0]["id"]
-        return True
+            st.session_state._nav_section = next_sec
+            st.session_state._nav_criterion = next_criteria[0]["id"]
+            return True
 
     return False
 
@@ -291,17 +292,26 @@ with st.sidebar:
 
     st.divider()
 
+    _section_keys = list(SECTIONS.keys())
+    _nav_sec = st.session_state.pop("_nav_section", None)
+    _nav_crit = st.session_state.pop("_nav_criterion", None)
+
+    _sec_default = _section_keys.index(_nav_sec) if _nav_sec in _section_keys else 0
     section = st.selectbox(
         "Sección a auditar",
-        list(SECTIONS.keys()),
+        _section_keys,
+        index=_sec_default,
         format_func=lambda s: f"{s}. {SECTIONS[s]}",
         key="aud_section",
     )
 
     section_criteria = get_criteria_by_section(section)
+    _crit_ids = [c["id"] for c in section_criteria]
+    _crit_default = _crit_ids.index(_nav_crit) if _nav_crit in _crit_ids else 0
     criterion_id = st.selectbox(
         "Ítem específico",
-        [c["id"] for c in section_criteria],
+        _crit_ids,
+        index=_crit_default,
         format_func=lambda cid: f"{cid} — {get_criterion_by_id(cid)['name'][:60]}",
         key="aud_criterion",
     )
