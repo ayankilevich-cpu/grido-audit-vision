@@ -80,6 +80,33 @@ def _init_state():
 _init_state()
 
 
+# ── Navigation helper ────────────────────────────────────────────────────
+def _advance_to_next_item():
+    """Advance sidebar selection to the next audit item."""
+    section_keys = list(SECTIONS.keys())
+    current_section = st.session_state.get("aud_section", section_keys[0])
+    current_criterion = st.session_state.get("aud_criterion", "")
+
+    criteria_ids = [c["id"] for c in get_criteria_by_section(current_section)]
+
+    if current_criterion in criteria_ids:
+        idx = criteria_ids.index(current_criterion)
+        if idx + 1 < len(criteria_ids):
+            st.session_state.aud_criterion = criteria_ids[idx + 1]
+            return True
+
+    sec_idx = section_keys.index(current_section) if current_section in section_keys else 0
+    if sec_idx + 1 < len(section_keys):
+        next_sec = section_keys[sec_idx + 1]
+        st.session_state.aud_section = next_sec
+        next_criteria = get_criteria_by_section(next_sec)
+        if next_criteria:
+            st.session_state.aud_criterion = next_criteria[0]["id"]
+        return True
+
+    return False
+
+
 # ── AI analysis ─────────────────────────────────────────────────────────
 def _encode_image(uploaded_file) -> str:
     return base64.b64encode(uploaded_file.getvalue()).decode("utf-8")
@@ -268,6 +295,7 @@ with st.sidebar:
         "Sección a auditar",
         list(SECTIONS.keys()),
         format_func=lambda s: f"{s}. {SECTIONS[s]}",
+        key="aud_section",
     )
 
     section_criteria = get_criteria_by_section(section)
@@ -275,6 +303,7 @@ with st.sidebar:
         "Ítem específico",
         [c["id"] for c in section_criteria],
         format_func=lambda cid: f"{cid} — {get_criterion_by_id(cid)['name'][:60]}",
+        key="aud_criterion",
     )
 
     selected_criterion = get_criterion_by_id(criterion_id)
@@ -448,40 +477,54 @@ with tab_audit:
                     st.error(f"Error al analizar {photo_info['name']}: {exc}")
 
     if st.session_state.results:
-        st.divider()
-        st.subheader("Resultados de esta sesión")
-        for i, entry in enumerate(reversed(st.session_state.results)):
-            _render_result(entry["result"], entry["criterion"], i)
+        current_item_results = [
+            (i, entry) for i, entry in enumerate(st.session_state.results)
+            if entry["criterion"]["id"] == criterion_id
+        ]
+        other_results = [
+            (i, entry) for i, entry in enumerate(st.session_state.results)
+            if entry["criterion"]["id"] != criterion_id
+        ]
 
-            result_idx = len(st.session_state.results) - 1 - i
-            ai_status = entry["result"].get("status", "Observación")
+        if current_item_results:
+            st.divider()
+            st.subheader(f"Resultado: {criterion_id}")
 
-            with st.expander(f"Corregir resultado de {entry['criterion']['id']}", expanded=False):
-                st.caption(
-                    "Si la IA se equivocó, corregí el estado real. "
-                    "Esto mejora las evaluaciones futuras de este ítem."
-                )
-                col_corr1, col_corr2 = st.columns(2)
-                with col_corr1:
-                    statuses = ["Conforme", "Observación", "No Conforme"]
-                    default_idx = statuses.index(ai_status) if ai_status in statuses else 1
-                    corrected = st.selectbox(
+            statuses_list = ["Conforme", "Observación", "No Conforme"]
+
+            for orig_idx, entry in current_item_results:
+                _render_result(entry["result"], entry["criterion"], orig_idx)
+
+                ai_status = entry["result"].get("status", "Observación")
+                default_idx = statuses_list.index(ai_status) if ai_status in statuses_list else 1
+
+                st.caption("Si la IA se equivocó, ajustá el estado correcto:")
+                col_c1, col_c2 = st.columns(2)
+                with col_c1:
+                    st.selectbox(
                         "Estado correcto",
-                        statuses,
+                        statuses_list,
                         index=default_idx,
-                        key=f"corr_status_{result_idx}",
+                        key=f"corr_status_{orig_idx}",
                     )
-                with col_corr2:
-                    notes = st.text_input(
-                        "Nota del auditor",
-                        placeholder="Ej: La exhibidora estaba en lugar incorrecto",
-                        key=f"corr_notes_{result_idx}",
+                with col_c2:
+                    st.text_input(
+                        "Nota del auditor (opcional)",
+                        placeholder="Ej: Exhibidora fuera de lugar",
+                        key=f"corr_notes_{orig_idx}",
                     )
 
-                if st.button("Guardar corrección", key=f"corr_btn_{result_idx}"):
-                    if corrected == ai_status and not notes:
-                        st.info("No hay cambios para guardar.")
-                    elif db.is_connected():
+            if st.button(
+                "✅ Confirmar y siguiente",
+                type="primary",
+                use_container_width=True,
+            ):
+                for orig_idx, entry in current_item_results:
+                    ai_status = entry["result"].get("status", "Observación")
+                    corrected = st.session_state.get(f"corr_status_{orig_idx}", ai_status)
+                    notes = st.session_state.get(f"corr_notes_{orig_idx}", "")
+
+                    if (corrected != ai_status or notes) and db.is_connected():
                         try:
                             db.save_correction(
                                 item_id=entry["criterion"]["id"],
@@ -493,14 +536,19 @@ with tab_audit:
                                 local=local_name,
                                 fecha=datetime.now().strftime("%Y-%m"),
                             )
-                            st.success(
-                                f"Corrección guardada: {ai_status} -> {corrected}. "
-                                "La IA usará esto como referencia en futuras evaluaciones."
-                            )
-                        except Exception as e:
-                            st.error(f"Error al guardar corrección: {e}")
-                    else:
-                        st.warning("MongoDB no está conectado. No se puede guardar la corrección.")
+                        except Exception:
+                            pass
+
+                if _advance_to_next_item():
+                    st.rerun()
+                else:
+                    st.success("Último ítem confirmado. Revisá el Reporte.")
+
+        if other_results:
+            st.divider()
+            with st.expander(f"📋 Resultados anteriores ({len(other_results)})", expanded=False):
+                for _, entry in reversed(other_results):
+                    _render_result(entry["result"], entry["criterion"], _)
 
 # ─── Tab: Reporte ───────────────────────────────────────────────────────
 with tab_report:
