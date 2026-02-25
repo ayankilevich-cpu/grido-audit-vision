@@ -4,6 +4,8 @@ Cada ítem tiene: id, sección, nombre, tipo de check, y descripciones
 de Conforme / Observación / No Conforme.
 """
 
+LOCALES = ["Edén", "España"]
+
 SECTIONS = {
     "A": "Infraestructura — Estado de conservación y limpieza",
     "B": "Experiencia del cliente",

@@ -12,7 +12,7 @@ from datetime import date, datetime
 import streamlit as st
 from PIL import Image
 
-from criteria import CRITERIA, SECTIONS, get_criteria_by_section
+from criteria import CRITERIA, LOCALES, SECTIONS, get_criteria_by_section
 import db
 
 # ── Constantes ────────────────────────────────────────────────────────────
@@ -182,9 +182,7 @@ else:
 
 c1, c2 = st.columns(2)
 with c1:
-    local_name = st.text_input(
-        "🏪 Local", placeholder="Nombre del local", key="cap_local_name"
-    )
+    local_name = st.selectbox("🏪 Local", LOCALES, key="cap_local_name")
 with c2:
     audit_date = st.date_input("📅 Fecha", value=date.today(), key="cap_audit_date")
 

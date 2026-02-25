@@ -17,6 +17,7 @@ from openai import OpenAI
 
 from criteria import (
     CRITERIA,
+    LOCALES,
     SECTIONS,
     get_criteria_by_section,
     get_criterion_by_id,
@@ -254,10 +255,10 @@ with st.sidebar:
 
     st.divider()
 
-    local_name = st.text_input(
-        "📍 Nombre del local",
-        value=st.session_state.local_name,
-        placeholder="Ej: Grido Centro Córdoba",
+    local_name = st.selectbox(
+        "📍 Local",
+        LOCALES,
+        index=LOCALES.index(st.session_state.local_name) if st.session_state.local_name in LOCALES else 0,
     )
     st.session_state.local_name = local_name
 
