@@ -4,6 +4,7 @@ Grido Audit Vision — Capa de datos (MongoDB Atlas).
 Colecciones:
   photos         — fotos comprimidas (se purgan a los 6 meses)
   audit_results  — resultados del análisis IA (se mantienen indefinidamente)
+  corrections    — correcciones del auditor humano (retroalimentación para mejorar la IA)
 """
 
 from __future__ import annotations
@@ -304,3 +305,70 @@ def cleanup_old_photos(months: int = 6) -> int:
     cutoff = datetime.now(timezone.utc) - timedelta(days=months * 30)
     result = _col().delete_many({"created_at": {"$lt": cutoff}})
     return result.deleted_count
+
+
+# ── Colección: corrections (retroalimentación) ───────────────────────────
+
+
+def _corrections_col():
+    """Return the corrections collection."""
+    uri = _get_uri()
+    if not uri:
+        raise RuntimeError("MONGODB_URI not configured")
+    client = _connect(uri)
+    db = client["grido_audit"]
+    col = db["corrections"]
+    col.create_index([("item_id", 1), ("created_at", -1)])
+    return col
+
+
+def save_correction(
+    item_id: str,
+    item_name: str,
+    ai_status: str,
+    corrected_status: str,
+    ai_justificacion: str,
+    correction_notes: str,
+    local: str = "",
+    fecha: str = "",
+) -> str:
+    """Save an auditor's correction of the AI result."""
+    doc = {
+        "item_id": item_id,
+        "item_name": item_name,
+        "ai_status": ai_status,
+        "corrected_status": corrected_status,
+        "ai_justificacion": ai_justificacion,
+        "correction_notes": correction_notes,
+        "local": local,
+        "fecha": fecha,
+        "created_at": datetime.now(timezone.utc),
+    }
+    r = _corrections_col().insert_one(doc)
+    return str(r.inserted_id)
+
+
+def get_corrections_for_item(item_id: str, limit: int = 5) -> list[dict[str, Any]]:
+    """Return recent corrections for a specific item (for few-shot prompting)."""
+    cursor = (
+        _corrections_col()
+        .find(
+            {"item_id": item_id},
+            {"_id": 0, "ai_status": 1, "corrected_status": 1,
+             "ai_justificacion": 1, "correction_notes": 1},
+        )
+        .sort("created_at", -1)
+        .limit(limit)
+    )
+    return list(cursor)
+
+
+def get_all_corrections(limit: int = 50) -> list[dict[str, Any]]:
+    """Return recent corrections across all items."""
+    cursor = (
+        _corrections_col()
+        .find({}, {"_id": 0})
+        .sort("created_at", -1)
+        .limit(limit)
+    )
+    return list(cursor)

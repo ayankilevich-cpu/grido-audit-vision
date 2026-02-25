@@ -55,7 +55,14 @@ Respondé SIEMPRE en formato JSON con esta estructura exacta:
 
 Sé riguroso pero justo. Si la foto no permite evaluar claramente el ítem, indicalo \
 en la justificación y asigná "Observación" por precaución. \
-No inventes lo que no se ve; solo evaluá lo visible en la imagen.\
+No inventes lo que no se ve; solo evaluá lo visible en la imagen.
+
+IMPORTANTE: Cuando el auditor humano haya corregido evaluaciones anteriores tuyas \
+sobre este mismo ítem, se te proporcionarán como ejemplos de referencia. \
+Prestá mucha atención a esas correcciones: reflejan el criterio real del auditor \
+y debés ajustar tu evaluación para ser consistente con ese criterio. \
+Si la IA evaluó "Observación" pero el auditor corrigió a "No Conforme", eso \
+significa que debés ser más estricto en casos similares.\
 """
 
 
@@ -77,21 +84,43 @@ def _encode_image(uploaded_file) -> str:
     return base64.b64encode(uploaded_file.getvalue()).decode("utf-8")
 
 
+def _build_corrections_context(corrections: list[dict]) -> str:
+    """Build a text block with past corrections to inject in the prompt."""
+    if not corrections:
+        return ""
+    lines = [
+        "\n\n## Correcciones previas del auditor humano para este ítem\n"
+        "Usá estos ejemplos como referencia para calibrar tu evaluación:\n"
+    ]
+    for i, c in enumerate(corrections, 1):
+        lines.append(
+            f"**Ejemplo {i}:** La IA evaluó **{c['ai_status']}** pero el auditor "
+            f"corrigió a **{c['corrected_status']}**.\n"
+            f"- Justificación IA: {c.get('ai_justificacion', '—')}\n"
+            f"- Nota del auditor: {c.get('correction_notes', '—')}\n"
+        )
+    return "\n".join(lines)
+
+
 def analyze_photo(
     api_key: str,
     image_file,
     criterion: dict,
     model: str = "gpt-4o",
+    corrections: list[dict] | None = None,
 ) -> dict:
     client = OpenAI(api_key=api_key)
     b64 = _encode_image(image_file)
     mime = image_file.type or "image/jpeg"
+
+    corrections_ctx = _build_corrections_context(corrections or [])
 
     user_prompt = (
         f"## Ítem a evaluar: {criterion['id']} — {criterion['name']}\n\n"
         f"**Criterios de CONFORME:**\n{criterion['conforme']}\n\n"
         f"**Criterios de OBSERVACIÓN:**\n{criterion['observacion']}\n\n"
         f"**Criterios de NO CONFORME:**\n{criterion['no_conforme']}\n\n"
+        f"{corrections_ctx}\n\n"
         "Analizá la siguiente fotografía y evaluá si el ítem está Conforme, "
         "Observación o No Conforme. Respondé en JSON."
     )
@@ -363,6 +392,13 @@ with tab_audit:
                     "source": "upload",
                 })
 
+        past_corrections = []
+        if db.is_connected():
+            try:
+                past_corrections = db.get_corrections_for_item(criterion_id)
+            except Exception:
+                pass
+
         for photo_info in photos_to_analyze:
             with st.spinner(f"Analizando {photo_info['name']}..."):
                 try:
@@ -379,6 +415,7 @@ with tab_audit:
                         image_file=img_file,
                         criterion=selected_criterion,
                         model=model_choice,
+                        corrections=past_corrections,
                     )
 
                     entry = {
@@ -414,6 +451,55 @@ with tab_audit:
         st.subheader("Resultados de esta sesión")
         for i, entry in enumerate(reversed(st.session_state.results)):
             _render_result(entry["result"], entry["criterion"], i)
+
+            result_idx = len(st.session_state.results) - 1 - i
+            ai_status = entry["result"].get("status", "Observación")
+
+            with st.expander(f"Corregir resultado de {entry['criterion']['id']}", expanded=False):
+                st.caption(
+                    "Si la IA se equivocó, corregí el estado real. "
+                    "Esto mejora las evaluaciones futuras de este ítem."
+                )
+                col_corr1, col_corr2 = st.columns(2)
+                with col_corr1:
+                    statuses = ["Conforme", "Observación", "No Conforme"]
+                    default_idx = statuses.index(ai_status) if ai_status in statuses else 1
+                    corrected = st.selectbox(
+                        "Estado correcto",
+                        statuses,
+                        index=default_idx,
+                        key=f"corr_status_{result_idx}",
+                    )
+                with col_corr2:
+                    notes = st.text_input(
+                        "Nota del auditor",
+                        placeholder="Ej: La exhibidora estaba en lugar incorrecto",
+                        key=f"corr_notes_{result_idx}",
+                    )
+
+                if st.button("Guardar corrección", key=f"corr_btn_{result_idx}"):
+                    if corrected == ai_status and not notes:
+                        st.info("No hay cambios para guardar.")
+                    elif db.is_connected():
+                        try:
+                            db.save_correction(
+                                item_id=entry["criterion"]["id"],
+                                item_name=entry["criterion"]["name"],
+                                ai_status=ai_status,
+                                corrected_status=corrected,
+                                ai_justificacion=entry["result"].get("justificacion", ""),
+                                correction_notes=notes,
+                                local=local_name,
+                                fecha=datetime.now().strftime("%Y-%m"),
+                            )
+                            st.success(
+                                f"Corrección guardada: {ai_status} -> {corrected}. "
+                                "La IA usará esto como referencia en futuras evaluaciones."
+                            )
+                        except Exception as e:
+                            st.error(f"Error al guardar corrección: {e}")
+                    else:
+                        st.warning("MongoDB no está conectado. No se puede guardar la corrección.")
 
 # ─── Tab: Reporte ───────────────────────────────────────────────────────
 with tab_report:
