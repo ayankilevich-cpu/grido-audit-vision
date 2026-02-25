@@ -1,7 +1,6 @@
 """
-Grido Fotos — Captura de fotos para auditoría (cloud-ready).
-Almacena fotos comprimidas en session_state para funcionar
-en Streamlit Cloud sin depender del filesystem.
+Grido Fotos — Captura de fotos para auditoría.
+Guarda fotos comprimidas en MongoDB Atlas (o session_state como fallback).
 """
 
 from __future__ import annotations
@@ -14,6 +13,7 @@ import streamlit as st
 from PIL import Image
 
 from criteria import CRITERIA, SECTIONS, get_criteria_by_section
+import db
 
 # ── Constantes ────────────────────────────────────────────────────────────
 
@@ -54,10 +54,12 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {font-size:1.1rem !imp
     unsafe_allow_html=True,
 )
 
-# ── Session state ─────────────────────────────────────────────────────────
+# ── Session state fallback ────────────────────────────────────────────────
 
 if "cap_photos" not in st.session_state:
     st.session_state.cap_photos: dict[str, list[dict]] = {}
+
+use_mongo = db.is_connected()
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────
@@ -83,61 +85,76 @@ def compress_photo(uploaded_file) -> bytes:
     return buf.getvalue()
 
 
-def photo_count(item_id: str) -> int:
+def _photo_count(local: str, fecha: str, item_id: str) -> int:
+    if use_mongo:
+        counts = _get_counts(local, fecha)
+        return counts.get(item_id, 0)
     return len(st.session_state.cap_photos.get(item_id, []))
 
 
-def total_photos() -> int:
+@st.cache_data(ttl=5)
+def _get_counts(local: str, fecha: str) -> dict[str, int]:
+    return db.get_photo_counts(local, fecha)
+
+
+def _total_photos(local: str, fecha: str) -> int:
+    if use_mongo:
+        return sum(_get_counts(local, fecha).values())
     return sum(len(v) for v in st.session_state.cap_photos.values())
 
 
-def total_size_str() -> str:
-    total = sum(
-        len(p["data"])
-        for photos in st.session_state.cap_photos.values()
-        for p in photos
-    )
+def _total_size_str(local: str, fecha: str) -> str:
+    if use_mongo:
+        total = db.get_total_size(local, fecha)
+    else:
+        total = sum(
+            len(p["data"])
+            for photos in st.session_state.cap_photos.values()
+            for p in photos
+        )
     if total < 1024 * 1024:
         return f"{total / 1024:.0f} KB"
     return f"{total / (1024 * 1024):.1f} MB"
 
 
-def next_photo_name(item_id: str) -> str:
-    code = item_id.replace(".", "")
-    n = photo_count(item_id) + 1
-    return f"{code}_{n:03d}.jpg"
-
-
-def build_zip(local_name: str, fecha: str) -> bytes:
-    """Build ZIP from session state photos."""
+def _build_zip(local: str, fecha: str) -> bytes:
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        for item_id, photos in st.session_state.cap_photos.items():
-            section = item_id[0]
-            code = item_id.replace(".", "")
-            folder = f"{SECTION_FOLDERS[section]}/{code}"
-            for photo in photos:
-                zf.writestr(f"{folder}/{photo['name']}", photo["data"])
+        if use_mongo:
+            all_photos = db.get_all_photos(local, fecha)
+            for p in all_photos:
+                sec = p["section"]
+                code = p["item_id"].replace(".", "")
+                path = f"{SECTION_FOLDERS[sec]}/{code}/{p['photo_name']}"
+                zf.writestr(path, p["photo_data"])
+        else:
+            for item_id, photos in st.session_state.cap_photos.items():
+                sec = item_id[0]
+                code = item_id.replace(".", "")
+                for p in photos:
+                    path = f"{SECTION_FOLDERS[sec]}/{code}/{p['name']}"
+                    zf.writestr(path, p["data"])
 
-        summary = _build_summary(local_name, fecha)
-        zf.writestr("confirmado.txt", summary)
+        summary = _build_summary(local, fecha)
+        zf.writestr("resumen.txt", summary)
 
     return buf.getvalue()
 
 
-def _build_summary(local_name: str, fecha: str) -> str:
+def _build_summary(local: str, fecha: str) -> str:
     lines = [
         "AUDITORÍA — FOTOS CAPTURADAS",
-        f"Local: {local_name or 'Sin especificar'}",
+        f"Local: {local or 'Sin especificar'}",
         f"Fecha: {fecha}",
         f"Generado: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-        f"Fotos totales: {total_photos()}",
-        f"Tamaño total: {total_size_str()}",
+        f"Fotos totales: {_total_photos(local, fecha)}",
+        f"Tamaño: {_total_size_str(local, fecha)}",
+        f"Almacenamiento: {'MongoDB Atlas' if use_mongo else 'Sesión local'}",
         "",
         "DETALLE POR ÍTEM:",
     ]
     for c in CRITERIA:
-        n = photo_count(c["id"])
+        n = _photo_count(local, fecha, c["id"])
         if c["id"] in NO_PHOTO_ITEMS:
             flag = "⏭️"
         elif n > 0:
@@ -152,6 +169,14 @@ def _build_summary(local_name: str, fecha: str) -> str:
 
 st.markdown("## 📸 Captura de Fotos")
 st.caption("Sacá las fotos de auditoría desde tu celular")
+
+if use_mongo:
+    st.success("🟢 Conectado a MongoDB Atlas — las fotos se guardan en la nube automáticamente")
+else:
+    st.warning(
+        "⚠️ MongoDB no configurado. Las fotos se guardan solo en esta sesión. "
+        "Configurá `MONGODB_URI` en Settings → Secrets para almacenamiento persistente."
+    )
 
 # ── Config ────────────────────────────────────────────────────────────────
 
@@ -168,20 +193,18 @@ fecha_str = audit_date.strftime("%Y-%m")
 with st.sidebar:
     st.markdown("### 📖 Instrucciones")
     st.markdown(
-        "1. Elegí la sección y el ítem\n"
-        "2. Sacá fotos o subí desde galería\n"
-        "3. Tocá **Guardar**\n"
-        "4. Pasá al siguiente ítem\n"
-        "5. Cuando termines, tocá **Confirmar**"
+        "1. Escribí el nombre del local\n"
+        "2. Elegí la sección y el ítem\n"
+        "3. Sacá fotos o subí desde galería\n"
+        "4. Tocá **Guardar**\n"
+        "5. Pasá al siguiente ítem\n"
+        "6. Al terminar, descargá el ZIP"
     )
     st.divider()
-    if total_photos() > 0:
-        st.metric("Fotos totales", total_photos())
-        st.caption(f"💾 Tamaño: {total_size_str()}")
-        st.divider()
-    if st.button("🗑️ Reiniciar capturas", use_container_width=True):
-        st.session_state.cap_photos = {}
-        st.rerun()
+    tp = _total_photos(local_name, fecha_str)
+    if tp > 0:
+        st.metric("Fotos totales", tp)
+        st.caption(f"💾 Tamaño: {_total_size_str(local_name, fecha_str)}")
 
 # ── Progreso ──────────────────────────────────────────────────────────────
 
@@ -192,7 +215,7 @@ total_items = len(CRITERIA)
 items_covered = sum(
     1
     for c in CRITERIA
-    if photo_count(c["id"]) > 0 or c["id"] in NO_PHOTO_ITEMS
+    if _photo_count(local_name, fecha_str, c["id"]) > 0 or c["id"] in NO_PHOTO_ITEMS
 )
 
 st.progress(
@@ -206,7 +229,7 @@ for i, (sec_key, short_name) in enumerate(SECTION_SHORT.items()):
     done = sum(
         1
         for c in sec_items
-        if photo_count(c["id"]) > 0 or c["id"] in NO_PHOTO_ITEMS
+        if _photo_count(local_name, fecha_str, c["id"]) > 0 or c["id"] in NO_PHOTO_ITEMS
     )
     with metric_cols[i]:
         st.metric(short_name, f"{done}/{len(sec_items)}")
@@ -231,7 +254,7 @@ def _item_label(item: dict) -> str:
     name = item["name"]
     if len(name) > 45:
         name = name[:42] + "..."
-    n = photo_count(iid)
+    n = _photo_count(local_name, fecha_str, iid)
     if iid in NO_PHOTO_ITEMS:
         return f"⏭️ {iid} — {name} (oral)"
     if n > 0:
@@ -245,9 +268,7 @@ if selected:
     item_id = selected["id"]
 
     if item_id in NO_PHOTO_ITEMS:
-        st.info(
-            "ℹ️ Este ítem se evalúa de forma oral/presencial y no requiere fotos."
-        )
+        st.info("ℹ️ Este ítem se evalúa de forma oral/presencial y no requiere fotos.")
     else:
         with st.expander("ℹ️ Qué evalúa este ítem", expanded=False):
             st.markdown(f"**{selected['name']}**")
@@ -260,7 +281,14 @@ if selected:
 
         # ── Fotos existentes ──────────────────────────────────────────
 
-        item_photos = st.session_state.cap_photos.get(item_id, [])
+        if use_mongo:
+            item_photos = db.get_photos_for_item(local_name, fecha_str, item_id)
+        else:
+            item_photos_raw = st.session_state.cap_photos.get(item_id, [])
+            item_photos = [
+                {"_id": str(i), "photo_data": p["data"], "photo_name": p["name"]}
+                for i, p in enumerate(item_photos_raw)
+            ]
 
         if item_photos:
             st.markdown(f"**📸 Fotos guardadas: {len(item_photos)}**")
@@ -270,10 +298,11 @@ if selected:
                     idx = row_start + j
                     if idx >= len(item_photos):
                         break
+                    photo = item_photos[idx]
                     with cols[j]:
                         st.image(
-                            item_photos[idx]["data"],
-                            caption=item_photos[idx]["name"],
+                            photo["photo_data"],
+                            caption=photo["photo_name"],
                             use_container_width=True,
                         )
                         if st.button(
@@ -281,9 +310,13 @@ if selected:
                             key=f"cdel_{item_id}_{idx}",
                             help="Borrar esta foto",
                         ):
-                            st.session_state.cap_photos[item_id].pop(idx)
-                            if not st.session_state.cap_photos[item_id]:
-                                del st.session_state.cap_photos[item_id]
+                            if use_mongo:
+                                db.delete_photo(str(photo["_id"]))
+                                _get_counts.clear()
+                            else:
+                                st.session_state.cap_photos[item_id].pop(idx)
+                                if not st.session_state.cap_photos[item_id]:
+                                    del st.session_state.cap_photos[item_id]
                             st.rerun()
 
         # ── Agregar fotos ─────────────────────────────────────────────
@@ -306,22 +339,31 @@ if selected:
                     type="primary",
                     use_container_width=True,
                 ):
-                    if item_id not in st.session_state.cap_photos:
-                        st.session_state.cap_photos[item_id] = []
-
                     saved = 0
                     for f in uploaded:
                         try:
                             compressed = compress_photo(f)
-                            name = next_photo_name(item_id)
-                            st.session_state.cap_photos[item_id].append(
-                                {"data": compressed, "name": name}
-                            )
+                            if use_mongo:
+                                name = db.next_photo_name(local_name, fecha_str, item_id)
+                                db.save_photo(
+                                    local_name, fecha_str, section, item_id,
+                                    compressed, name,
+                                )
+                            else:
+                                code = item_id.replace(".", "")
+                                if item_id not in st.session_state.cap_photos:
+                                    st.session_state.cap_photos[item_id] = []
+                                n = len(st.session_state.cap_photos[item_id]) + 1
+                                st.session_state.cap_photos[item_id].append(
+                                    {"data": compressed, "name": f"{code}_{n:03d}.jpg"}
+                                )
                             saved += 1
                         except Exception as e:
                             st.error(f"Error con {f.name}: {e}")
 
                     if saved:
+                        if use_mongo:
+                            _get_counts.clear()
                         st.success(f"✅ {saved} foto(s) guardadas para {item_id}")
                         st.rerun()
 
@@ -340,13 +382,21 @@ if selected:
                 ):
                     try:
                         compressed = compress_photo(camera_photo)
-                        if item_id not in st.session_state.cap_photos:
-                            st.session_state.cap_photos[item_id] = []
-
-                        name = next_photo_name(item_id)
-                        st.session_state.cap_photos[item_id].append(
-                            {"data": compressed, "name": name}
-                        )
+                        if use_mongo:
+                            name = db.next_photo_name(local_name, fecha_str, item_id)
+                            db.save_photo(
+                                local_name, fecha_str, section, item_id,
+                                compressed, name,
+                            )
+                            _get_counts.clear()
+                        else:
+                            code = item_id.replace(".", "")
+                            if item_id not in st.session_state.cap_photos:
+                                st.session_state.cap_photos[item_id] = []
+                            n = len(st.session_state.cap_photos[item_id]) + 1
+                            st.session_state.cap_photos[item_id].append(
+                                {"data": compressed, "name": f"{code}_{n:03d}.jpg"}
+                            )
                         st.success(f"✅ Foto guardada para {item_id}")
                         st.rerun()
                     except Exception as e:
@@ -355,12 +405,13 @@ if selected:
 # ── Finalizar ─────────────────────────────────────────────────────────────
 
 st.divider()
-st.markdown("### ✅ Finalizar auditoría")
+st.markdown("### ✅ Finalizar")
 
 missing = [
     c
     for c in CRITERIA
-    if photo_count(c["id"]) == 0 and c["id"] not in NO_PHOTO_ITEMS
+    if _photo_count(local_name, fecha_str, c["id"]) == 0
+    and c["id"] not in NO_PHOTO_ITEMS
 ]
 
 if missing:
@@ -377,42 +428,24 @@ if missing:
 else:
     st.success("🎉 ¡Todos los ítems tienen fotos!")
 
-has_photos = total_photos() > 0
-
-col_zip, col_reset = st.columns(2)
-
-with col_zip:
-    if has_photos:
-        local_slug = (local_name.strip().replace(" ", "-") or "Local")
-        zip_data = build_zip(local_name, fecha_str)
-        st.download_button(
-            "📥 Descargar ZIP",
-            data=zip_data,
-            file_name=f"auditoria_{fecha_str}_{local_slug}.zip",
-            mime="application/zip",
-            use_container_width=True,
-            type="primary",
-        )
-
-with col_reset:
-    if has_photos:
-        st.download_button(
-            "📄 Ver resumen",
-            data=_build_summary(local_name, fecha_str),
-            file_name="resumen_auditoria.txt",
-            mime="text/plain",
-            use_container_width=True,
-        )
+has_photos = _total_photos(local_name, fecha_str) > 0
 
 if has_photos:
-    st.info(
-        "💡 Descargá el ZIP antes de cerrar el navegador. "
-        "Las fotos se guardan en tu sesión y no persisten entre visitas."
+    local_slug = (local_name.strip().replace(" ", "-") or "Local")
+    zip_data = _build_zip(local_name, fecha_str)
+    st.download_button(
+        "📥 Descargar ZIP",
+        data=zip_data,
+        file_name=f"auditoria_{fecha_str}_{local_slug}.zip",
+        mime="application/zip",
+        use_container_width=True,
+        type="primary",
     )
 
 # ── Footer ────────────────────────────────────────────────────────────────
 
 st.divider()
 st.caption(
-    "📸 Grido Fotos — Las fotos se comprimen automáticamente (~90% de ahorro)."
+    "📸 Grido Fotos — Las fotos se comprimen automáticamente (~90% de ahorro). "
+    + ("Almacenadas en MongoDB Atlas." if use_mongo else "Almacenadas en la sesión.")
 )

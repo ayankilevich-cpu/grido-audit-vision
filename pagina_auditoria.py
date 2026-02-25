@@ -22,6 +22,7 @@ from criteria import (
     get_criterion_by_id,
     get_section_name,
 )
+import db
 
 STATUS_COLORS = {
     "Conforme": "#2ecc71",
@@ -302,33 +303,77 @@ with tab_audit:
 
     st.divider()
 
+    # ── Cargar fotos desde MongoDB o subir manualmente ────────────
+    db_photos = []
+    if db.is_connected() and local_name:
+        fecha_audit = datetime.now().strftime("%Y-%m")
+        db_photos = db.get_photos_for_item(local_name, fecha_audit, criterion_id)
+
+    if db_photos:
+        st.markdown(
+            f"📦 **{len(db_photos)} foto(s) disponibles en la base de datos** "
+            f"para este ítem del local *{local_name}*"
+        )
+        photo_cols = st.columns(min(len(db_photos), 4))
+        for i, p in enumerate(db_photos):
+            with photo_cols[i % len(photo_cols)]:
+                st.image(p["photo_data"], caption=p["photo_name"], use_container_width=True)
+
     uploaded_files = st.file_uploader(
-        "Subí una o más fotos del local para este ítem",
+        "O subí fotos manualmente",
         type=["jpg", "jpeg", "png", "webp"],
         accept_multiple_files=True,
         key=f"upload_{criterion_id}",
     )
 
     if uploaded_files:
-        cols = st.columns(min(len(uploaded_files), 4))
+        upload_cols = st.columns(min(len(uploaded_files), 4))
         for i, f in enumerate(uploaded_files):
-            with cols[i % len(cols)]:
+            with upload_cols[i % len(upload_cols)]:
                 st.image(f, caption=f.name, use_container_width=True)
+
+    has_any_photos = bool(db_photos) or bool(uploaded_files)
 
     analyze_btn = st.button(
         "🔍 Analizar con IA",
         type="primary",
         use_container_width=True,
-        disabled=not uploaded_files or not api_key,
+        disabled=not has_any_photos or not api_key,
     )
 
     if not api_key:
         st.info("Ingresá tu OpenAI API Key en el panel izquierdo para empezar.")
 
-    if analyze_btn and uploaded_files and api_key:
-        for img_file in uploaded_files:
-            with st.spinner(f"Analizando {img_file.name}..."):
+    if analyze_btn and has_any_photos and api_key:
+        photos_to_analyze = []
+
+        if db_photos:
+            for p in db_photos:
+                photos_to_analyze.append({
+                    "data": p["photo_data"],
+                    "name": p["photo_name"],
+                    "source": "db",
+                })
+
+        if uploaded_files:
+            for f in uploaded_files:
+                photos_to_analyze.append({
+                    "data": f,
+                    "name": f.name,
+                    "source": "upload",
+                })
+
+        for photo_info in photos_to_analyze:
+            with st.spinner(f"Analizando {photo_info['name']}..."):
                 try:
+                    if photo_info["source"] == "db":
+                        img_file = io.BytesIO(photo_info["data"])
+                        img_file.name = photo_info["name"]
+                        img_file.type = "image/jpeg"
+                        img_file.getvalue = lambda d=photo_info["data"]: d
+                    else:
+                        img_file = photo_info["data"]
+
                     result = analyze_photo(
                         api_key=api_key,
                         image_file=img_file,
@@ -339,7 +384,7 @@ with tab_audit:
                     entry = {
                         "criterion": selected_criterion,
                         "result": result,
-                        "filename": img_file.name,
+                        "filename": photo_info["name"],
                         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     }
                     st.session_state.results.append(entry)
@@ -347,7 +392,7 @@ with tab_audit:
                     _render_result(result, selected_criterion, len(st.session_state.results))
 
                 except Exception as exc:
-                    st.error(f"Error al analizar {img_file.name}: {exc}")
+                    st.error(f"Error al analizar {photo_info['name']}: {exc}")
 
     if st.session_state.results:
         st.divider()
