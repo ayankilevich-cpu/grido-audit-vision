@@ -389,6 +389,21 @@ with tab_audit:
                     }
                     st.session_state.results.append(entry)
 
+                    if db.is_connected() and local_name:
+                        try:
+                            db.save_audit_result(
+                                local=local_name,
+                                fecha=datetime.now().strftime("%Y-%m"),
+                                section=selected_criterion["section"],
+                                item_id=selected_criterion["id"],
+                                item_name=selected_criterion["name"],
+                                result=result,
+                                filename=photo_info["name"],
+                                model=model_choice,
+                            )
+                        except Exception as e:
+                            st.warning(f"No se pudo guardar el resultado en MongoDB: {e}")
+
                     _render_result(result, selected_criterion, len(st.session_state.results))
 
                 except Exception as exc:
@@ -404,17 +419,56 @@ with tab_audit:
 with tab_report:
     st.header("📊 Reporte de Auditoría")
 
-    if not st.session_state.results:
-        st.info("Todavía no hay resultados. Analizá al menos una foto en la pestaña Auditar.")
-    else:
+    report_source = "session"
+    db_report_results = []
+
+    if db.is_connected():
+        history = db.get_audit_history()
+        if history:
+            audit_options = [f"{h['local']} — {h['fecha']}" for h in history]
+            audit_options.insert(0, "Sesión actual")
+            selected_audit = st.selectbox("Seleccionar auditoría", audit_options)
+            if selected_audit != "Sesión actual":
+                idx = audit_options.index(selected_audit) - 1
+                sel = history[idx]
+                db_report_results = db.get_audit_results(sel["local"], sel["fecha"])
+                report_source = "db"
+
+    if report_source == "db" and db_report_results:
+        rows = []
+        for r in db_report_results:
+            rows.append({
+                "Ítem": r["item_id"],
+                "Nombre": r.get("item_name", ""),
+                "Sección": get_section_name(r.get("section", "")),
+                "Estado": r["status"],
+                "Justificación": r.get("justificacion", ""),
+                "Detalles": "; ".join(r.get("detalles_observados", [])),
+                "Recomendaciones": "; ".join(r.get("recomendaciones", [])),
+                "Fecha": r.get("analyzed_at", ""),
+            })
+        df = pd.DataFrame(rows)
+
+        sel_h = history[audit_options.index(selected_audit) - 1]
+        st.markdown(
+            f"**Local:** {sel_h['local']} · "
+            f"**Período:** {sel_h['fecha']} · "
+            f"**Ítems evaluados:** {sel_h['total']} · "
+            f"**Conformidad:** {sel_h['pct_conforme']}%"
+        )
+    elif st.session_state.results:
+        df = _build_report_df()
         st.markdown(
             f"**Local:** {st.session_state.local_name or '—'} · "
             f"**Fecha:** {st.session_state.audit_date} · "
             f"**Ítems evaluados:** {len(st.session_state.results)}"
         )
-        st.divider()
+    else:
+        df = None
+        st.info("Todavía no hay resultados. Analizá al menos una foto en la pestaña Auditar.")
 
-        df = _build_report_df()
+    if df is not None and not df.empty:
+        st.divider()
 
         summary_col1, summary_col2 = st.columns([1, 2])
         with summary_col1:
@@ -431,9 +485,14 @@ with tab_report:
                     unsafe_allow_html=True,
                 )
 
-            total_items = len(CRITERIA)
-            coverage = len(set(r["criterion"]["id"] for r in st.session_state.results))
-            st.metric("Cobertura", f"{coverage}/{total_items} ítems")
+            if report_source == "session":
+                total_items = len(CRITERIA)
+                coverage = len(set(r["criterion"]["id"] for r in st.session_state.results))
+                st.metric("Cobertura", f"{coverage}/{total_items} ítems")
+            else:
+                unique_items = df["Ítem"].nunique()
+                total_items = len(CRITERIA)
+                st.metric("Cobertura", f"{unique_items}/{total_items} ítems")
 
         with summary_col2:
             for sec_key, sec_name in SECTIONS.items():

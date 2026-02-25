@@ -23,6 +23,7 @@ pg = st.navigation(
     [
         st.Page("pagina_captura.py", title="Captura de Fotos", icon="📸"),
         st.Page("pagina_auditoria.py", title="Auditoría IA", icon="🔍"),
+        st.Page("pagina_historial.py", title="Historial", icon="📈"),
     ]
 )
 
