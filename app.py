@@ -13,10 +13,7 @@ st.set_page_config(
 )
 
 with st.sidebar:
-    st.image(
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Grido_logo.svg/200px-Grido_logo.svg.png",
-        width=130,
-    )
+    st.image("logo.png", width=150)
     st.title("Grido Audit")
 
 pg = st.navigation(
