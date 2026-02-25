@@ -407,6 +407,9 @@ if selected:
 st.divider()
 st.markdown("### ✅ Finalizar")
 
+has_photos = _total_photos(local_name, fecha_str) > 0
+tp = _total_photos(local_name, fecha_str)
+
 missing = [
     c
     for c in CRITERIA
@@ -414,33 +417,41 @@ missing = [
     and c["id"] not in NO_PHOTO_ITEMS
 ]
 
-if missing:
-    st.warning(f"⚠️ Faltan fotos de **{len(missing)}** ítems.")
-    with st.expander("Ver ítems pendientes"):
-        for sec_key in SECTIONS:
-            sec_missing = [m for m in missing if m["section"] == sec_key]
-            if sec_missing:
-                st.markdown(
-                    f"**{sec_key}. {SECTION_SHORT[sec_key]}** ({len(sec_missing)} pendientes)"
-                )
-                for m in sec_missing:
-                    st.markdown(f"- {m['id']} — {m['name'][:55]}...")
-else:
-    st.success("🎉 ¡Todos los ítems tienen fotos!")
-
-has_photos = _total_photos(local_name, fecha_str) > 0
-
 if has_photos:
-    local_slug = (local_name.strip().replace(" ", "-") or "Local")
-    zip_data = _build_zip(local_name, fecha_str)
-    st.download_button(
-        "📥 Descargar ZIP",
-        data=zip_data,
-        file_name=f"auditoria_{fecha_str}_{local_slug}.zip",
-        mime="application/zip",
-        use_container_width=True,
-        type="primary",
+    st.markdown(
+        f"**{items_covered} de {total_items}** ítems cubiertos "
+        f"({tp} fotos, {_total_size_str(local_name, fecha_str)})"
     )
+    if missing:
+        with st.expander(f"ℹ️ {len(missing)} ítems sin fotos (opcional)"):
+            for sec_key in SECTIONS:
+                sec_missing = [m for m in missing if m["section"] == sec_key]
+                if sec_missing:
+                    st.markdown(
+                        f"**{sec_key}. {SECTION_SHORT[sec_key]}** ({len(sec_missing)})"
+                    )
+                    for m in sec_missing:
+                        st.markdown(f"- {m['id']} — {m['name'][:55]}...")
+
+    if use_mongo:
+        st.success(
+            "✅ Las fotos ya están guardadas en la nube. "
+            "Podés cerrar el navegador tranquilo."
+        )
+    else:
+        local_slug = (local_name.strip().replace(" ", "-") or "Local")
+        zip_data = _build_zip(local_name, fecha_str)
+        st.download_button(
+            "📥 Descargar ZIP",
+            data=zip_data,
+            file_name=f"auditoria_{fecha_str}_{local_slug}.zip",
+            mime="application/zip",
+            use_container_width=True,
+            type="primary",
+        )
+        st.info("💡 Descargá el ZIP antes de cerrar — sin MongoDB las fotos no persisten.")
+else:
+    st.caption("Empezá a sacar fotos para poder finalizar.")
 
 # ── Footer ────────────────────────────────────────────────────────────────
 
