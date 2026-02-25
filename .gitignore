@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Carpetas de fotos locales
+fotos_auditoria/
+auditorias/
+test_fotos/
+
+# Archivos generados localmente
+*.docx
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

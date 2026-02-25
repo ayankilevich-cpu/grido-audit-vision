@@ -1,0 +1,977 @@
+================================================================================
+  GRIDO AUDIT VISION — Guía de fotos para auditoría interna
+================================================================================
+  Fecha de referencia: Auditorías Operativas Abril 2025
+  Instrucciones: para cada ítem se listan las fotos que el colaborador
+  debe tomar. Todas las fotos deben ser claras, bien iluminadas y sin
+  filtros. Nombrar cada archivo con el código del ítem + número de foto.
+  Ejemplo: A1_01.jpg, A1_02.jpg, etc.
+================================================================================
+
+
+================================================================================
+  PLAN DE PERIODICIDAD
+================================================================================
+
+  La auditoría oficial comercial es cada 6 MESES.
+  La auditoría interna se organiza en dos modalidades:
+
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  AUDITORÍA COMPLETA  →  cada 2 MESES  (mes 2, mes 4)             │
+  │  Todas las secciones (A + B + C + D + E) — ~250 fotos             │
+  │                                                                     │
+  │  AUDITORÍA RÁPIDA    →  meses intermedios  (mes 1, mes 3, mes 5)  │
+  │  Solo sección C + seguimiento de desvíos anteriores — ~80 fotos   │
+  │                                                                     │
+  │  AUDITORÍA OFICIAL   →  cada 6 MESES  (mes 6)                    │
+  └─────────────────────────────────────────────────────────────────────┘
+
+  Ejemplo de un ciclo semestral:
+  ─────────────────────────────────────────────────────────────
+  Mes 1 │ RÁPIDA    │ Sección C + desvíos anteriores
+  Mes 2 │ COMPLETA  │ Secciones A + B + C + D + E
+  Mes 3 │ RÁPIDA    │ Sección C + desvíos anteriores
+  Mes 4 │ COMPLETA  │ Secciones A + B + C + D + E
+  Mes 5 │ RÁPIDA    │ Sección C + desvíos anteriores
+  Mes 6 │ OFICIAL   │ Auditoría formal de la marca
+  ─────────────────────────────────────────────────────────────
+
+  PERIODICIDAD POR SECCIÓN:
+  ─────────────────────────────────────────────────────────────
+  Sección A (Infraestructura)       │ Cada 2 meses (COMPLETA)
+  Sección B (Experiencia cliente)   │ Cada 2 meses (COMPLETA)
+  Sección C (Operatoria diaria)     │ MENSUAL (siempre)
+  Sección D (Imagen y formato)      │ Cada 2 meses (COMPLETA)
+  Sección E (Oferta y stock)        │ Cada 2 meses (COMPLETA)
+  ─────────────────────────────────────────────────────────────
+
+  ¿Por qué la sección C es mensual?
+  Porque los ítems de operatoria diaria (higiene, manipulación,
+  uniformes, temperaturas, almacenamiento, documentación) son los
+  más variables y donde se concentra la mayoría de los "No Conforme".
+  Revisarlos cada mes permite corregir antes de que se vuelvan hábitos.
+
+  SEGUIMIENTO DE DESVÍOS:
+  En la auditoría rápida (meses 1, 3 y 5), además de la sección C
+  completa, se deben re-fotografiar TODOS los ítems que resultaron
+  "Observación" o "No Conforme" en la auditoría anterior, sin importar
+  a qué sección pertenezcan. Esto permite verificar que se corrigieron.
+
+
+================================================================================
+  SECCIÓN A — INFRAESTRUCTURA: Estado de conservación y limpieza
+  PERIODICIDAD: cada 2 MESES (solo en auditoría COMPLETA)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+A.1  Exterior (pisos, zócalos, cordón cuneta, techos, muros, iluminación,
+     pérgolas, toldos, bicicletero, dog parking, juegos infantiles)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (6):
+    1. Vista general de la vereda/exterior del local (desde la calle, que se
+       vea el frente completo incluyendo pisos y cordón cuneta).
+    2. Pisos exteriores en detalle: juntas, rejillas, deck (si aplica).
+       Acercarse para que se vean las condiciones de las piezas.
+    3. Muros y zócalos exteriores: foto de cada pared exterior visible.
+    4. Techos y cielorrasos exteriores (pérgola, toldo). Foto mirando
+       hacia arriba desde abajo.
+    5. Bicicletero / dog parking / juegos infantiles exteriores (si existen).
+       Una foto de cada uno mostrando estado general.
+    6. Iluminación exterior: foto de los artefactos de luz (reflectores,
+       lámparas LED). Si es de noche, foto con luces encendidas.
+
+  Tip: si hay defectos visibles (graffitis, piezas rotas, manchas),
+  sacar una foto extra en detalle de cada defecto encontrado.
+
+
+────────────────────────────────────────────────────────────────────────────────
+A.2  Marquesina: Estado y limpieza
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Vista frontal completa de la marquesina (que se vea toda la
+       estructura, chapas, logo corpóreo).
+    2. Detalle del logo corpóreo y su iluminación.
+    3. Cartel bandera y/o saliente (si existe). Foto lateral.
+    4. Detalle de limpieza: acercar a la marquesina para que se vea
+       si hay polvo, manchas, óxido o suciedad acumulada.
+
+  Si es horario nocturno: foto adicional con reflectores encendidos.
+
+
+────────────────────────────────────────────────────────────────────────────────
+A.3  Mobiliario: Estado y limpieza (mesas, sillas, sombrillas, living)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Vista general del sector de mesas y sillas (que se vea el conjunto
+       completo, orden y distribución).
+    2. Detalle de una mesa: superficie de la tapa, ploteo, estado de pintura.
+    3. Detalle de una silla: patas, regatones, estado de pintura, soldaduras.
+    4. Sombrillas (si existen): foto general mostrando estado y estabilidad.
+    5. Living (si existe): foto de sillones/tapizados mostrando estado
+       del tapizado, lonas, estructura.
+
+  Si hay defectos (óxido, pinturas descascaradas, tapizados rotos):
+  foto extra en detalle de cada defecto.
+
+
+────────────────────────────────────────────────────────────────────────────────
+A.4  Iluminación interior: Estado y limpieza
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Vista general del salón mostrando todas las luminarias
+       (que se aprecie si están encendidas y si la luz es suficiente).
+    2. Vista general del AMH mostrando luminarias.
+    3. Detalle de un plafón/luminaria de cerca (para ver limpieza,
+       presencia de insectos, estado de la estructura).
+    4. Foto de cualquier luminaria apagada o con defecto visible.
+
+
+────────────────────────────────────────────────────────────────────────────────
+A.5  Pisos, aberturas, techo y zócalos en salón: Estado y limpieza
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (6):
+    1. Pisos del salón: vista general (que se vean las juntas, estado
+       de las piezas, zócalos).
+    2. Detalle de zócalos: acercar a la unión piso-pared.
+    3. Aberturas/puertas de ingreso: foto frontal mostrando vidrios,
+       herrajes, estado general.
+    4. Detalle de vidrios: buscar rajaduras, falta de masilla,
+       vinilos/fajas.
+    5. Techo/cielorraso del salón: foto mirando hacia arriba.
+    6. Alfombra de ingreso (si existe): foto de cerca mostrando estado.
+
+  Si hay cortina metálica: foto cuando está abierta (buscar graffitis
+  en la cara interna).
+
+
+────────────────────────────────────────────────────────────────────────────────
+A.6  Muros y revestimientos de muros en salón: Estado y limpieza
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Pared principal del salón (revestimiento nebraska, cuadros, ploteos).
+    2. Pared del AMH: cerámicos bricks, estado de juntas.
+    3. Detalle de cuadros decorativos (bien puestos, imágenes autorizadas).
+    4. Zócalos y repisas corian en unión de módulos con pared de bricks.
+    5. Cualquier pared con humedad, pintura descascarada, cerámicos
+       rotos o faltantes (foto de detalle del defecto).
+
+
+────────────────────────────────────────────────────────────────────────────────
+A.7  Cartelera: Estado y limpieza
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Vista frontal completa de la cartelera (que se lean los precios
+       y se vean todas las pantallas/láminas).
+    2. Detalle de precios: foto acercada donde se verifique que son
+       los autorizados.
+    3. Sabores faltantes: foto mostrando si están marcados correctamente
+       (sticker o marcación del sistema).
+    4. Estado de limpieza de la cartelera: marcos, cables, estructura.
+
+
+────────────────────────────────────────────────────────────────────────────────
+A.8  Mostradores: Estado y limpieza
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Vista frontal completa del mostrador (desde el lado del cliente).
+    2. Detalle de la piedra del mostrador: buscar rajaduras, roturas.
+    3. Vidrios del mostrador: estado, limpieza, fijación.
+    4. Material de comunicación exhibido en el mostrador.
+    5. Iluminación del mostrador (si aplica): foto mostrando si funciona.
+
+
+────────────────────────────────────────────────────────────────────────────────
+A.9  Separación de áreas / Orden y estado del depósito
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (8):
+    1. Puerta de ingreso al depósito: señalización visible.
+    2. Vista general del depósito (que se vea el orden, distribución,
+       estanterías, tarimas).
+    3. Paredes del depósito: cerámicos, pintura, estado de juntas.
+    4. Pisos del depósito: foto de cerca mostrando uniones curvas
+       pared-piso, estado general.
+    5. Techo/cielorraso del depósito.
+    6. Estanterías y tarimas: material, estado, separación de 5 cm
+       respecto de la pared.
+    7. Casilleros de colaboradores (interior si es posible).
+    8. Tarima de recepción de mercadería: foto mostrando su existencia
+       y material (plástica o madera con pintura sintética).
+
+  Si existe cámara de frío: foto adicional del interior mostrando
+  piso sanitario, estantes, burletes de la puerta.
+
+
+────────────────────────────────────────────────────────────────────────────────
+A.10 ¿El local permite descarga eficiente de productos congelados?
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Puerta de ingreso por donde pasa el carrito/zorrita (que se
+       aprecie el ancho).
+    2. Recorrido desde la puerta hasta el depósito (que se vean
+       posibles obstáculos, escaleras, desniveles).
+    3. Rampa (si existe) o escaleras con su señalización.
+    4. Espacio de estacionamiento frente al local para el camión.
+
+
+────────────────────────────────────────────────────────────────────────────────
+A.11 ¿Hay espacio disponible para descansar?
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Vista general del espacio de descanso de colaboradores.
+    2. Detalle del mobiliario (sillas/mesa) y limpieza del sector.
+    3. Foto mostrando que no hay insumos ni mobiliario almacenado
+       en ese espacio (o foto mostrando si los hay).
+
+
+================================================================================
+  SECCIÓN B — EXPERIENCIA DEL CLIENTE
+  PERIODICIDAD: cada 2 MESES (solo en auditoría COMPLETA)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+B.1  Portal de Novedades, musicalización en exterior y en salón
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. TV del salón encendido mostrando el portal de novedades
+       (que se vea la pantalla y el contenido).
+    2. Equipo de música / parlantes: ubicación y estado.
+    3. Cables de conexión: foto mostrando si están ordenados u ocultos.
+    4. Vista general del salón donde se aprecie la ubicación del TV
+       (verificar que NO esté en el AMH).
+
+
+────────────────────────────────────────────────────────────────────────────────
+B.2  Climatización y ventilación: Estado y limpieza
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Equipo de aire acondicionado: vista general de la unidad interior.
+    2. Detalle de rejillas y filtros del equipo (acercar para ver
+       limpieza, polvo, suciedad).
+    3. Manguera de desagote y bidón de recolección.
+    4. Carcasa del equipo: buscar telas de araña, manchas de sarro.
+    5. Si hay equipo exterior (compresor): foto mostrando estado.
+
+  IMPORTANTE: si se usa calefactor, estufa o ventilador NO autorizado,
+  fotografiar el equipo.
+
+
+────────────────────────────────────────────────────────────────────────────────
+B.3  Dispenser de agua
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Dispenser completo: vista frontal mostrando ubicación en salón/AMH.
+    2. Detalle de canillas y receptáculo/rejilla de goteo.
+    3. Estado de higiene de la carcasa y bandeja inferior.
+    4. Disponibilidad de vasos junto al dispenser.
+
+
+────────────────────────────────────────────────────────────────────────────────
+B.4  Matafuegos, luces de emergencia, instalación eléctrica y señalética
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (8):
+    1. Matafuegos del salón: foto completa mostrando ubicación,
+       accesibilidad y que está colgado.
+    2. Detalle de la etiqueta de carga del matafuegos (fecha de
+       vencimiento, tipo ABC, peso).
+    3. Matafuegos del depósito (si hay otro).
+    4. Luz de emergencia del salón: foto mostrando que está enchufada.
+    5. Luz de emergencia del depósito.
+    6. Tablero eléctrico: foto mostrando tapas sanas, señalética de
+       riesgo eléctrico, llaves térmicas y disyuntor.
+    7. Señalética de salida de emergencia.
+    8. Desniveles/escalones: foto mostrando señalización en amarillo
+       o rojo (o la falta de ella).
+
+  Si hay barandas (escaleras, terrazas): foto adicional mostrando
+  estado e instalación.
+
+
+────────────────────────────────────────────────────────────────────────────────
+B.5  Baño para clientes
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (7):
+    1. Puerta del baño con señalización visible.
+    2. Vista general del interior del baño.
+    3. Inodoro: tapa completa, botón/mochila funcionando.
+    4. Lavamanos: grifería, dispenser de jabón con contenido,
+       dispenser de toallas con contenido.
+    5. Espejo: estado, película antiestallido.
+    6. Ventiluz/extractor: estado de la tela mosquitera.
+    7. Secamanos eléctrico (si existe): enchufado y funcionando.
+
+  Si hay cambiador para bebés: foto adicional mostrando estado.
+
+
+────────────────────────────────────────────────────────────────────────────────
+B.6  Sector de juegos infantiles
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Vista general del sector de juegos (que se vea el conjunto
+       completo, piso blando, delimitación).
+    2. Detalle de cada juego: estructura, fijaciones, pintura.
+    3. Piso blando/goma: foto de cerca mostrando que cubre toda
+       la superficie del juego.
+    4. Estado de higiene: buscar pegotes de helado, suciedad acumulada.
+    5. Maquinitas (si existen): foto mostrando estado y funcionamiento.
+
+  NO APLICA si el local no tiene sector infantil.
+
+
+────────────────────────────────────────────────────────────────────────────────
+B.7  SmartFran - Club Grido - Conexión y funcionamiento
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Pantalla de SmartFran / sistema loyalty mostrando que está
+       logueado y funcionando (captura de pantalla o foto de pantalla).
+    2. Lector de tarjetas Club Grido: foto del dispositivo.
+    3. Tabla de canjes oficial impresa: foto mostrando que está
+       exhibida y a la vista del cliente.
+
+
+────────────────────────────────────────────────────────────────────────────────
+B.8  APP GRIDO: Gestión del canal digital
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Material de comunicación de descarga de la APP exhibido en
+       el local (soporte fijo).
+    2. Captura de pantalla de la APP mostrando que el local está
+       disponible/activo en formato take away.
+    3. Captura de pantalla del panel de pedidos mostrando la relación
+       entre pedidos efectivos y cancelados del último mes.
+
+
+────────────────────────────────────────────────────────────────────────────────
+B.9  Posnet y Grido Go (tótem autogestión)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Posnet: foto mostrando el equipo conectado y en funcionamiento.
+    2. Tótem de autogestión (si existe): vista frontal completa
+       mostrando pantalla encendida.
+    3. Detalle del tótem: elementos completos, estado de higiene.
+
+  NO APLICA el tótem si el local no lo tiene.
+
+
+────────────────────────────────────────────────────────────────────────────────
+B.10 Disponibilidad de Wi-Fi para el cliente
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Señalética oficial de Wi-Fi exhibida en el local.
+    2. Captura de pantalla del celular mostrando que la red Wi-Fi
+       está disponible y se puede conectar.
+    3. Ubicación de la señalética en contexto (que se vea dónde
+       está colocada).
+
+
+────────────────────────────────────────────────────────────────────────────────
+B.11 ¿Dispone de generador eléctrico?
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Generador eléctrico: vista general mostrando ubicación.
+    2. Detalle del equipo: estado, conexiones.
+    3. Si NO tiene generador: foto del tablero eléctrico general.
+
+
+================================================================================
+  SECCIÓN C — OPERATORIA DIARIA
+  PERIODICIDAD: MENSUAL (en auditoría COMPLETA y RÁPIDA)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+C.1  Disponibilidad de productos a granel
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Vista general del pozo/mostrador de granel abierto mostrando
+       todos los sabores disponibles.
+    2. Foto panorámica de la cartelera de sabores (para cruzar contra
+       lo que hay en el mostrador).
+    3. Detalle de los huecos vacíos donde faltan sabores (si los hay).
+    4. Foto de sabores marcados como faltantes en la cartelera.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.2  Disponibilidad y exhibición de productos secos e insumos generales
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (7):
+    1. Zona de toppings: nueces, tramontana, frutilla, crispines,
+       ensalada de frutas. Foto de conjunto.
+    2. Salsas: foto mostrando variedad disponible (500g y 120g).
+    3. Vasos, cucharitas, envases térmicos: foto del sector de insumos.
+    4. Servilleteros en el salón: foto mostrando cantidad y distribución.
+    5. Exhibidora de Grido Tops: foto frontal mostrando variedades,
+       estado de la exhibidora y vinilo/faja.
+    6. Grido Market: foto frontal del exhibidor mostrando productos
+       de frente y nivel de ocupación (3/4 mínimo).
+    7. Otros exhibidores de productos temporales: foto mostrando
+       precios autorizados.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.3  Condiciones de almacenamiento, fraccionamiento y rotulado
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (7):
+    1. Estantería del depósito: vista general mostrando el orden
+       de productos (limpieza abajo, materias primas medio, envases arriba).
+    2. Productos sobre tarimas: foto que permita apreciar la altura
+       respecto del piso (mínimo 14 cm).
+    3. Detalle de etiquetas de productos cerrados: que se lean RNE,
+       RNPA, fecha de elaboración/vencimiento.
+    4. Sector de productos fallados/vencidos: foto de la cartelería
+       que los identifica.
+    5. Recipientes de productos fraccionados: foto mostrando cierre
+       hermético, estado, etiqueta (producto, marca, fechas).
+    6. Registro de productos fraccionados: foto del documento impreso
+       o pantalla digital de los últimos 30 días.
+    7. Interior de la cámara de frío (si aplica): foto mostrando
+       estibado, diferencia entre circulación y estibación.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.4  Equipos de frío: Higiene y mantenimiento
+     (pozos, cámaras, freezer, exhibidora, toppinera, frigobar)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (8):
+    1. Freezer del depósito: vista externa (ploteo, tapas, burletes).
+    2. Freezer del depósito: interior abierto (hielo acumulado, limpieza).
+    3. Pozo de frío del mostrador: vista superior abierta.
+    4. Exhibidora vertical (impulsivos): foto frontal completa
+       mostrando ploteo, cenefa, vidrios.
+    5. Exhibidora horizontal (si existe): foto superior abierta.
+    6. Toppinera: foto mostrando estado, tapas, limpieza.
+    7. Frigobar: foto abierto mostrando interior (productos personales
+       en tuppers cerrados y rotulados).
+    8. Cámara de frío (si existe): burletes de puerta, cortina
+       sanitaria, piso sanitario.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.5  Temperatura de equipos de frío
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Termómetro del pozo de granel en mostrador mostrando temperatura
+       (debe estar entre -13,5°C y -15°C).
+    2. Termómetro del freezer del depósito mostrando temperatura
+       (debe estar a -18°C).
+    3. Termómetro de la cámara de frío (si aplica) mostrando -18°C.
+    4. Termómetro de la exhibidora de impulsivos mostrando -18°C.
+    5. Foto de helados a granel de cerca: verificar que no haya
+       cristalización, deformación o signos de pérdida de consistencia.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.6  Capacidad de frío en la franquicia
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Vista general de todos los equipos de frío del depósito
+       (que se vea la cantidad total de freezers/cámaras).
+    2. Detalle de la capacidad: foto mostrando el interior de un
+       freezer representativo con su nivel de ocupación.
+    3. Cámara de frío (si existe): vista general del interior.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.7  Prevención de la contaminación cruzada
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (6):
+    1. Cajas de helado a granel en el pozo: foto superior mostrando
+       estado de las cajas (solapas, presentación, bajado).
+    2. Detalle de 2-3 latas/cajas: buscar presencia de hielo, restos
+       de cucuruchos u otros sabores dentro de las cajas.
+    3. Interior de las cajas/baschetas: foto que muestre si están
+       "demasiado limpias" (indicio de limpieza con esponja).
+    4. Colaborador atendiendo: foto mostrando manipulación de
+       cucuruchos con servilleta, térmicos por la base.
+    5. Lavamanos del AMH: foto mostrando que está accesible para
+       lavado de manos frecuente.
+    6. Tarima sanitaria (si se está reponiendo): foto mostrando
+       las cajas fuera del freezer sobre tarima.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.8  Abastecimiento de agua
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Grifo del AMH: foto mostrando salida de agua fría y caliente
+       (si se puede, foto con el agua corriendo).
+    2. Grifo del depósito: ídem.
+    3. Tanque de agua (si se tiene acceso): foto mostrando estado
+       de limpieza.
+    4. Foto del agua corriendo: verificar que no está turbia.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.9  AMH (mesadas, bacha, lavabochero, grifo monocomando)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (6):
+    1. Vista general del AMH completo (mesada, bacha, bajomesada).
+    2. Detalle de la bacha: estado, limpieza, desagüe.
+    3. Lavabochero: foto mostrando estado y limpieza del agua.
+    4. Monocomando: foto de cerca mostrando estado y funcionamiento.
+    5. Bajomesada abierto: foto mostrando interior (puertas,
+       melamina, herrajes, ausencia de objetos personales).
+    6. Mesada: estado de la piedra, limpieza, ausencia de elementos
+       ajenos al sector (mates, vasos, documentos personales).
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.10 Equipos de producción (licuadora, cremera, chocolatera,
+     maq. café, bols, utensilios)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (8):
+    1. Licuadora: foto completa mostrando vaso, base, cables.
+    2. Chocolatera: foto mostrando nivel de chocolate, tapa, cuchara.
+    3. Cremera: foto mostrando pico, estado de la rosca.
+    4. Máquina de café: foto frontal, detalle de base y desagüe.
+    5. Bols con tapa: foto mostrando estado y limpieza (incluida tapa).
+    6. Utensilios alineados: foto de las 6 paletas, 6 bocheros y
+       4 corvetes juntos (para contar cantidad y verificar material).
+    7. Detalle de mangos de utensilios: foto de cerca verificando
+       que sean de acero inoxidable (no madera, no aluminio).
+    8. Termómetro de punción: foto mostrando estado y limpieza.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.11 Equipos complementarios (balanza, microondas, caja, PC)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Balanza: foto mostrando visor (verificar que esté a la vista
+       del cliente), estado de la bandeja.
+    2. Microondas: foto frontal mostrando display, puerta, plato.
+    3. Microondas abierto: foto del interior mostrando limpieza.
+    4. Sector de caja/PC: foto mostrando orden de cables y ausencia
+       de papeles pegados con vista al cliente.
+    5. Vista desde el lado del cliente del sector caja: verificar
+       que no hay papeles, notas o elementos no autorizados visibles.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.12 Elementos de higiene personal (dispenser jabón y toallas
+     en depósito y AMH)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Dispenser de jabón en AMH: foto mostrando estado, fijación
+       a la pared, contenido.
+    2. Dispenser de toallas en AMH: foto mostrando estado y contenido.
+    3. Dispenser de jabón en depósito: foto ídem.
+    4. Dispenser de toallas en depósito: foto ídem.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.13 Elementos de limpieza y desinfección.
+     Ausencia de sustancias peligrosas
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (7):
+    1. Sector de almacenamiento de productos de limpieza: foto
+       mostrando ubicación, cartelería, separación de materia prima.
+    2. Rejillas extendidas: foto mostrando las de cada color
+       (blanco = AMH, amarillo = salón/exterior, otro = baño).
+       Verificar que estén enteras y sanas.
+    3. Esponjas: foto mostrando tipo (verificar que NO sean metálicas
+       en AMH).
+    4. Escobillón, escoba, pala, secador, mopa: foto mostrando
+       estado y tipo de cabo (plástico o metal forrado, NO madera).
+    5. Productos químicos: foto mostrando envases cerrados,
+       identificados con su etiqueta original.
+    6. Foto general del sector verificando que NO hay plaguicidas,
+       venenos, nafta, solventes, insecticidas.
+    7. Generador eléctrico en depósito (si aplica): verificar que
+       tiene cobertura.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.14 ¿El baño de los colaboradores está en condiciones?
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Vista general del baño de colaboradores.
+    2. Paredes y pisos: buscar hongos, humedad, suciedad.
+    3. Techo: buscar telas de araña.
+    4. Ventiluz/extractor con tela mosquitera.
+    5. Insumos: papel higiénico, toalla de mano, jabón disponibles.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.15 Higiene y Salud del Colaborador
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Foto de cada colaborador presente de frente (cuerpo completo):
+       verificar uniforme, cofia, pelo recogido, ausencia de adornos.
+    2. Detalle de manos de cada colaborador: uñas cortas, limpias,
+       sin esmalte, sin anillos/pulseras.
+    3. Colaborador manipulando producto: verificar buenas prácticas
+       (cucurucho con servilleta, sin tocar con manos directamente).
+    4. Foto del lavamanos con jabón accesible en AMH.
+
+  NOTA: pedir permiso al colaborador antes de fotografiarlo.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.16 Uniforme del Colaborador
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Foto de cada colaborador de cuerpo completo: verificar
+       cofia, delantal jean, remera, pantalón jean.
+    2. Detalle del logo del uniforme (verificar que está actualizado).
+    3. Calzado: foto de los pies mostrando calzado cerrado.
+    4. Estado del uniforme: buscar roturas, remiendos, decoloración.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.17 Conocimiento del colaborador
+────────────────────────────────────────────────────────────────────────────────
+  *** ESTE ÍTEM NO REQUIERE FOTOS ***
+  Se evalúa mediante pregunta verbal aleatoria al colaborador sobre
+  productos o procedimientos. Anotar la pregunta realizada y la
+  respuesta obtenida en un texto o audio.
+
+
+────────────────────────────────────────────────────────────────────────────────
+C.18 Constancia AFIP, Inscripción Provincial, Habilitación Municipal,
+     Carnet Sanitario y Control de plagas
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Constancia de Inscripción AFIP exhibida.
+    2. Inscripción Provincial (Ingresos Brutos) exhibida.
+    3. Habilitación Municipal exhibida.
+    4. Carnet de manipulador de alimentos de cada colaborador presente
+       (foto de cada carnet vigente).
+    5. Certificado de desinfección exhibido (verificar que no esté
+       vencido, con sello y firma de empresa) + formulario MIP.
+
+
+================================================================================
+  SECCIÓN D — IMAGEN: Formato y Estética
+  PERIODICIDAD: cada 2 MESES (solo en auditoría COMPLETA)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+D.1  Exterior (pisos, zócalos, muros, iluminación, pérgolas, toldos): Formato
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Vista frontal completa del local desde la calle (que se vean
+       colores de muros, techo, cajón de cortina metálica).
+    2. Pisos exteriores: material y formato (verificar contra planilla
+       técnica).
+    3. Pérgola/toldo: foto mostrando formato y color.
+    4. Motores de aire acondicionado en fachada: ubicación correcta.
+    5. Color de muros exteriores y techos: foto que permita comparar
+       con el color autorizado.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.2  Marquesina: formato
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Marquesina completa de frente: verificar logo NUEVO.
+    2. Saliente de pared: verificar imagen actualizada.
+    3. Cartel bandera (si existe): verificar si está actualizado.
+    4. Brazos reflectores: verificar que sean LED.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.3  Comunicación en vidriera
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (6):
+    1. Vidriera completa de frente: que se vean todos los soportes
+       de comunicación, vinilos y microperforados.
+    2. Faja esmerilada: foto mostrando diseño y altura (90 cm del piso).
+    3. Soportes de comunicación: foto de cada uno (máximo 2 permitidos).
+    4. Puerta: foto mostrando carteles de servicio (abierto-cerrado,
+       horarios, Club Grido, WiFi).
+    5. Cartel "se busca personal" (si existe): verificar ubicación
+       en puerta por sobre la faja y formato autorizado.
+    6. Cartel Delivery (si existe): verificar diseño autorizado.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.4  Mobiliario exterior: formato (mesas, sillas, sombrillas, cerco)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Vista general de mesas y sillas exteriores: verificar modelo
+       (ONE o Río) y colores.
+    2. Detalle de una silla: verificar modelo (ONE: blanco/azul/rojo
+       o naranja; o Río). Verificar que NO convivan rojas con naranjas.
+    3. Sombrillas: color (blancas o azules), formato según ficha.
+    4. Cerco o maceteros delimitando el sector (si aplica).
+    5. Bancos (si existen): verificar modelo (metálicos azules o
+       madera según ficha, que NO convivan ambos).
+
+  Si hay comunicación en mesas o servilleteros: foto de detalle.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.5  Mobiliario interior: formato (mesas, sillas, living)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Vista general del salón interior con mesas y sillas.
+    2. Detalle del modelo de sillas interiores (ONE o Río; verificar
+       que NO convivan en el mismo sector).
+    3. Barra con banquetas (si existe): verificar modelo MILO.
+    4. Living (si existe): butacón BARI con mesa ratona de madera
+       O sillón PAMPA con mesa ratona blanca.
+    5. Verificar ausencia de bancos metálicos en el salón.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.6  Iluminación interior: formato
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Luminarias del AMH: verificar tipo autorizado (plafones LED,
+       riel blanco, galponeras, bandejas) y tono (frío o neutro).
+    2. Luminarias del sitting/salón: verificar tipo y tono (cálido
+       o neutro).
+    3. Lámparas colgantes (si existen): verificar formato autorizado.
+    4. Detalle de un artefacto de iluminación (modelo/marca).
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.7  Pisos, aberturas, techo y zócalos en salón: Formato
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Pisos del salón: verificar material y color según planilla técnica.
+    2. Techo/cielorraso: verificar que es del mismo color que los muros.
+    3. Iluminación de la garganta del AMH: verificar luces blancas,
+       cálidas o neutras (NO de color).
+    4. Cortinas (si existen): verificar que sean blackout, solo en
+       sitting, de color autorizado.
+    5. Alfombra de ingreso: estado y formato actualizado.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.8  Muros y revestimientos en salón: formato
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (6):
+    1. Paredes del salón: verificar color autorizado.
+    2. Ploteos: foto de cada ploteo verificando que estén actualizados.
+    3. AMH: cerámicos bricks presentes y en condiciones.
+    4. Revestimiento de madera/empapelado: verificar logo actualizado
+       (no el viejo).
+    5. Zócalos y repisas corian: presentes en la unión módulos-bricks.
+    6. Caja de durlock cubriendo rollos de cortina metálica (si aplica):
+       verificar que es del color de los muros.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.9  Cartelera: formato
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Cartelera completa: verificar formato digital vigente.
+    2. TVs: verificar tamaño (43 pulgadas), alineación entre pantallas.
+    3. Foto desde la caja: verificar legibilidad de la primera lámina.
+    4. Sabores faltantes marcados en el sistema (si aplica).
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.10 Mostradores: formato
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Mostrador completo de frente: verificar modelo nebraska/báltico.
+    2. Detalle del logo en el mostrador (verificar actualizado).
+    3. Material de comunicación en el mostrador: verificar autorizado.
+    4. Vidrios e iluminación del mostrador.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.11 Decoración, plantas, jardines y cestos
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Plantas del salón y exterior: estado y distribución.
+    2. Decoraciones de fecha especial (si aplica): terminación y
+       completitud.
+    3. Cestos del salón: modelo autorizado (plástico tapa vaivén).
+    4. Cestos exteriores: modelo autorizado (chapa).
+    5. Cesto del baño: verificar modelo a pedal.
+
+  Si hay soporte de vereda/cartel sandwich: foto verificando que
+  NO esté escrito a mano.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.12 Sector de juegos infantiles (formato)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Vista general del sector: empapelado que define el sector,
+       delimitación.
+    2. Juegos: verificar estado de seguridad y formato.
+    3. Piso blando interior o césped exterior.
+    4. Maquinitas (máximo 1): verificar ubicación en sector infantil.
+
+  NO APLICA si el local no tiene sector infantil.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.13 Circuito ingreso-compra-consumo-salida: ¿es claro y cómodo?
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Desde la puerta de entrada mirando hacia adentro: que se vea
+       el AMH enfrentado a la puerta.
+    2. Recorrido del cliente: foto mostrando la secuencia natural
+       desde el ingreso hacia el mostrador.
+    3. Sector de autoservicio: verificar que está antes o junto a caja.
+    4. Sector infantil: verificar que está fuera de zona de riesgo
+       (lejos de AMH, caja y circulación principal).
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.14 ¿La cantidad de puestos de trabajo y cajas es coherente?
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Vista del AMH completo mostrando la cantidad de puestos
+       de trabajo operativos.
+    2. Sector de caja(s): foto mostrando cuántas cajas hay.
+    3. Ventana take away (si existe para delivery de alta demanda).
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.15 ¿La franquicia se encuentra ordenada?
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (4):
+    1. Vista panorámica del salón: distanciamiento entre mesas.
+    2. Identificación de sectores: infantil, living, sitting general.
+    3. Servicios complementarios implementados.
+    4. Vista general desde la puerta mostrando el orden general.
+
+
+────────────────────────────────────────────────────────────────────────────────
+D.16 En términos generales, ¿el local cumple con los requisitos de marca?
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Fachada completa del local desde la vereda de enfrente.
+    2. Vista panorámica interior del salón completo.
+    3. Vista panorámica del AMH completo.
+
+
+================================================================================
+  SECCIÓN E — OFERTA Y STOCK
+  PERIODICIDAD: cada 2 MESES (solo en auditoría COMPLETA)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+E.1  Disponibilidad y exhibición de impulsivos
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (6):
+    1. Exhibidora vertical: foto frontal completa (verificar ploteo
+       vinilo simil acero inoxidable, productos de cara al cliente,
+       ocupación mínima 3/4).
+    2. Exhibidora horizontal (si existe): foto superior abierta
+       (productos de cara, cajas cerradas, canastos con sueltas).
+    3. Detalle del ploteo/vinilo: estado, marca (Mc Cal 6076).
+    4. Cenefa de la exhibidora: estado y precios autorizados.
+    5. Vinilos de promociones o señalética: estado y autorización.
+    6. Detalle de productos faltantes o espacios vacíos.
+
+  Verificar que NO hay pozos o freezers operativos en el salón.
+
+
+────────────────────────────────────────────────────────────────────────────────
+E.2  Disponibilidad y exhibición de congelados (Frizzio)
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (5):
+    1. Exhibidora exclusiva Frizzio: foto frontal mostrando todas
+       las familias de productos exhibidas.
+    2. Cenefa Frizzio (horizontales) o vinilo (verticales): estado
+       y actualización.
+    3. Pieza de comunicación Frizzio en vidriera (A1) o sector caja (A5).
+    4. Precios en vinilo (verificar que NO son en papel ni a mano).
+    5. Nivel de ocupación de la exhibidora (mínimo 3/4).
+
+
+────────────────────────────────────────────────────────────────────────────────
+E.3  ¿Posee cámara de frío?
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Cámara de frío: vista exterior mostrando puerta y ubicación.
+    2. Interior de la cámara: vista general.
+    3. Si está fuera de la franquicia: foto mostrando ubicación/acceso.
+
+  Si NO posee cámara de frío: 1 foto del depósito mostrando que
+  no existe.
+
+
+────────────────────────────────────────────────────────────────────────────────
+E.4  ¿La cámara de frío tiene estantes?
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Interior de la cámara: foto mostrando estantes (si existen).
+    2. Palets/piso sanitario: foto de detalle.
+    3. Combinación de estantes y palets (si aplica).
+
+  NO APLICA si el local no tiene cámara de frío.
+
+
+────────────────────────────────────────────────────────────────────────────────
+E.5  ¿Cumple con capacidad de frío ideal?
+────────────────────────────────────────────────────────────────────────────────
+  Fotos a tomar (3):
+    1. Todos los equipos de frío alineados o en vista general
+       (para estimar capacidad total).
+    2. Etiqueta/placa de cada freezer o equipo mostrando capacidad
+       en litros.
+    3. Interior de equipos mostrando nivel de ocupación actual.
+
+
+================================================================================
+  RESUMEN DE FOTOS POR SECCIÓN Y PERIODICIDAD
+================================================================================
+
+  Sección  │ Fotos  │ Ítems │ Periodicidad  │ Tipo de auditoría
+  ─────────┼────────┼───────┼───────────────┼───────────────────
+  A Infra. │   54   │  11   │ Cada 2 meses  │ Solo COMPLETA
+  B Exp.cl │   52   │  11   │ Cada 2 meses  │ Solo COMPLETA
+  C Operat.│   84   │  18   │ MENSUAL       │ COMPLETA y RÁPIDA
+  D Imagen │   66   │  16   │ Cada 2 meses  │ Solo COMPLETA
+  E Stock  │   20   │   5   │ Cada 2 meses  │ Solo COMPLETA
+  ─────────┼────────┼───────┼───────────────┼───────────────────
+  TOTAL    │  276   │  61   │               │
+
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  AUDITORÍA COMPLETA (meses 2 y 4)                                 │
+  │  → Secciones A + B + C + D + E = ~250 fotos                       │
+  │                                                                     │
+  │  AUDITORÍA RÁPIDA (meses 1, 3 y 5)                                │
+  │  → Sección C completa                            = ~84 fotos       │
+  │  → + Ítems con Observación/No Conforme anterior  = ~20-40 fotos   │
+  │  → Total estimado                                = ~80-120 fotos   │
+  └─────────────────────────────────────────────────────────────────────┘
+
+  NOTA: el total real será menor porque:
+  · Algunos ítems "No Aplican" según el local (juegos infantiles,
+    cámara de frío, tótem, generador, etc.).
+  · Algunas fotos sirven para evaluar más de un ítem
+    (ej: la foto frontal del local sirve para A.1, A.2, D.1, D.2, D.16).
+  · El ítem C.17 (conocimiento del colaborador) no requiere fotos.
+
+  CALENDARIO ANUAL SUGERIDO (ejemplo inicio en Enero):
+  ─────────────────────────────────────────────────────────────
+  Ene │ RÁPIDA    │ Sección C + desvíos         │  ~80 fotos
+  Feb │ COMPLETA  │ A + B + C + D + E            │ ~250 fotos
+  Mar │ RÁPIDA    │ Sección C + desvíos         │  ~80 fotos
+  Abr │ COMPLETA  │ A + B + C + D + E            │ ~250 fotos
+  May │ RÁPIDA    │ Sección C + desvíos         │  ~80 fotos
+  Jun │ OFICIAL   │ Auditoría formal de la marca │    —
+  ─────────────────────────────────────────────────────────────
+  Jul │ RÁPIDA    │ Sección C + desvíos         │  ~80 fotos
+  Ago │ COMPLETA  │ A + B + C + D + E            │ ~250 fotos
+  Sep │ RÁPIDA    │ Sección C + desvíos         │  ~80 fotos
+  Oct │ COMPLETA  │ A + B + C + D + E            │ ~250 fotos
+  Nov │ RÁPIDA    │ Sección C + desvíos         │  ~80 fotos
+  Dic │ OFICIAL   │ Auditoría formal de la marca │    —
+  ─────────────────────────────────────────────────────────────
+
+
+================================================================================
+  TIPS PARA EL COLABORADOR
+================================================================================
+
+  · Sacá las fotos con buena iluminación y sin flash directo.
+  · No uses filtros ni editores de imagen.
+  · Intentá que las fotos estén bien enfocadas y sin movimiento.
+  · Nombrá cada foto con el código del ítem (A1_01, A1_02, etc.)
+    o agrupalas en carpetas por sección (A, B, C, D, E).
+  · Si encontrás un defecto: sacale una foto general y una de detalle.
+  · Las fotos de documentos (carnets, certificados, registros) deben
+    ser legibles: acercar lo suficiente para que se lean las fechas.
+  · Las fotos de termómetros deben mostrar la lectura con claridad.
+  · Si un ítem "No Aplica" a tu local, anotalo y no saques fotos.
+  · Aprovechá el recorrido natural: empezá por afuera (A.1, A.2),
+    entrá al salón (A.3-A.8), seguí al depósito (A.9), y luego
+    recorré los demás ítems en orden.

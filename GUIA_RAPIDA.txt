@@ -1,0 +1,98 @@
+================================================================================
+  GRIDO AUDIT VISION — Guía rápida
+================================================================================
+
+
+  ¿QUÉ ES?
+  ─────────
+  Una herramienta de autocontrol interno que analiza fotos de tu heladería
+  usando inteligencia artificial y las compara con los criterios oficiales
+  de la Guía de Auditoría Operativa Grido (Abril 2025).
+
+  Para cada foto, la IA determina si el ítem auditado está:
+    · CONFORME      → cumple con todos los requisitos
+    · OBSERVACIÓN   → desvíos leves que no comprometen imagen ni seguridad
+    · NO CONFORME   → defectos graves, visibles o que afectan la seguridad
+
+
+  REQUISITOS
+  ──────────
+  · Python 3.10+
+  · Una clave de API de OpenAI con acceso al modelo gpt-4o
+    (https://platform.openai.com/api-keys)
+
+
+  INSTALACIÓN
+  ───────────
+  1. Abrí una terminal en la carpeta grido_audit_app/
+  2. Instalá dependencias:
+       pip install -r requirements.txt
+  3. Ejecutá la app:
+       streamlit run app.py
+
+
+  CÓMO USAR — APP UNIFICADA
+  ──────────────────────────
+  Al ejecutar "streamlit run app.py" se abre una app con dos páginas
+  accesibles desde el menú lateral izquierdo:
+
+    📸 Captura de Fotos  →  Para sacar/subir fotos organizadas
+    🔍 Auditoría IA      →  Para analizar las fotos con IA
+
+
+  PÁGINA: 📸 CAPTURA DE FOTOS (para el colaborador)
+  ──────────────────────────────────────────────────
+  App optimizada para celular. El colaborador abre el link desde
+  el navegador del teléfono, selecciona sección e ítem, saca fotos
+  directo desde la cámara o sube desde la galería.
+
+  El colaborador accede desde su celular (misma red WiFi):
+    http://[tu-ip-local]:8501
+
+  Funcionalidades:
+    · Selección guiada de sección e ítem
+    · Captura desde cámara o galería del celular
+    · Compresión automática (~90% de ahorro de espacio)
+    · Progreso en tiempo real (qué ítems tienen fotos y cuáles faltan)
+    · Botón "Confirmar" al finalizar
+    · Descarga en ZIP para subir a Google Drive
+
+
+  PÁGINA: 🔍 AUDITORÍA IA (para el dueño/encargado)
+  ──────────────────────────────────────────────────
+  PASO 1: Ingresá tu API Key de OpenAI en el panel izquierdo.
+  PASO 2: Escribí el nombre de tu local.
+  PASO 3: Seleccioná la sección (A-E) y el ítem a auditar.
+  PASO 4: Subí las fotos del sector correspondiente.
+  PASO 5: Hacé clic en "Analizar con IA" y esperá el resultado.
+  PASO 6: Andá a la pestaña "Reporte" para el resumen completo
+          y descargá en Excel o CSV.
+
+
+  PROCESADOR DE FOTOS (procesar_fotos.py) — Alternativa manual
+  ─────────────────────────────────────────────────────────────
+  Si preferís que el colaborador saque fotos con la cámara nativa y
+  te las pase por WhatsApp/AirDrop/Drive, podés usar este script
+  para comprimirlas y organizarlas. Requiere que nombre cada foto
+  con el código del ítem (A1_01.jpg, B4_matafuego.jpg, etc.)
+
+  Uso:
+    python procesar_fotos.py carpeta_fotos --local "Centro Córdoba"
+
+
+  FLUJO COMPLETO RECOMENDADO
+  ──────────────────────────
+  1. Ejecutá la app: streamlit run app.py
+  2. Compartí el link con el colaborador (http://tu-ip:8501)
+  3. El colaborador va a "📸 Captura de Fotos" y saca las fotos
+  4. Al finalizar, confirmá y descargá el ZIP (o usá Google Drive sync)
+  5. Vos vas a "🔍 Auditoría IA" y cargás las fotos por ítem.
+
+
+  NOTAS IMPORTANTES
+  ─────────────────
+  · Los resultados son orientativos y no reemplazan la auditoría formal.
+  · La precisión depende de la calidad y ángulo de las fotos.
+  · Sacá fotos claras, bien iluminadas y que muestren el sector completo.
+  · Podés subir varias fotos por ítem para cubrir diferentes ángulos.
+  · El análisis consume créditos de tu cuenta OpenAI.
