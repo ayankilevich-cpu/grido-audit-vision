@@ -296,6 +296,10 @@ with st.sidebar:
     _nav_sec = st.session_state.pop("_nav_section", None)
     _nav_crit = st.session_state.pop("_nav_criterion", None)
 
+    if _nav_sec is not None:
+        st.session_state.pop("aud_section", None)
+        st.session_state.pop("aud_criterion", None)
+
     _sec_default = _section_keys.index(_nav_sec) if _nav_sec in _section_keys else 0
     section = st.selectbox(
         "Sección a auditar",
@@ -307,7 +311,7 @@ with st.sidebar:
 
     section_criteria = get_criteria_by_section(section)
     _crit_ids = [c["id"] for c in section_criteria]
-    _crit_default = _crit_ids.index(_nav_crit) if _nav_crit in _crit_ids else 0
+    _crit_default = _crit_ids.index(_nav_crit) if _nav_crit and _nav_crit in _crit_ids else 0
     criterion_id = st.selectbox(
         "Ítem específico",
         _crit_ids,
