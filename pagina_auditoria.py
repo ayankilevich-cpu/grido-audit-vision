@@ -234,22 +234,41 @@ def _render_result(result: dict, criterion: dict, idx: int):
                 st.markdown(f"- {r}")
 
 
+_STATUS_SEVERITY = {"Conforme": 0, "Observación": 1, "No Conforme": 2}
+
+
+def _worst_status(statuses: list[str]) -> str:
+    """Return the most severe status from a list (No Conforme > Observación > Conforme)."""
+    return max(statuses, key=lambda s: _STATUS_SEVERITY.get(s, 1))
+
+
 def _build_report_df() -> pd.DataFrame:
-    rows = []
+    """Build a consolidated report: one row per item, worst status wins."""
+    items: dict[str, dict] = {}
     for r in st.session_state.results:
-        rows.append(
-            {
-                "Ítem": r["criterion"]["id"],
+        item_id = r["criterion"]["id"]
+        status = r["result"]["status"]
+        if item_id not in items:
+            items[item_id] = {
+                "Ítem": item_id,
                 "Nombre": r["criterion"]["name"],
                 "Sección": get_section_name(r["criterion"]["section"]),
-                "Estado": r["result"]["status"],
+                "Estado": status,
                 "Justificación": r["result"].get("justificacion", ""),
                 "Detalles": "; ".join(r["result"].get("detalles_observados", [])),
                 "Recomendaciones": "; ".join(r["result"].get("recomendaciones", [])),
+                "Fotos": 1,
                 "Fecha": r.get("timestamp", ""),
             }
-        )
-    return pd.DataFrame(rows)
+        else:
+            prev = items[item_id]
+            prev["Fotos"] += 1
+            if _STATUS_SEVERITY.get(status, 1) > _STATUS_SEVERITY.get(prev["Estado"], 1):
+                prev["Estado"] = status
+                prev["Justificación"] = r["result"].get("justificacion", "")
+                prev["Detalles"] = "; ".join(r["result"].get("detalles_observados", []))
+                prev["Recomendaciones"] = "; ".join(r["result"].get("recomendaciones", []))
+    return pd.DataFrame(list(items.values()))
 
 
 def _to_excel(df: pd.DataFrame) -> bytes:
@@ -511,6 +530,18 @@ with tab_audit:
             st.divider()
             st.subheader(f"Resultado: {criterion_id}")
 
+            if len(current_item_results) > 1:
+                all_ai_statuses = [e["result"].get("status", "Observación") for _, e in current_item_results]
+                consolidated = _worst_status(all_ai_statuses)
+                counts = {s: all_ai_statuses.count(s) for s in set(all_ai_statuses)}
+                counts_str = ", ".join(f"{s}: {c}" for s, c in counts.items())
+                icon = STATUS_ICONS.get(consolidated, "")
+                st.info(
+                    f"**{len(current_item_results)} fotos analizadas** ({counts_str}) → "
+                    f"**Status consolidado del ítem: {icon} {consolidated}** "
+                    f"(se aplica el peor status)"
+                )
+
             statuses_list = ["Conforme", "Observación", "No Conforme"]
 
             for orig_idx, entry in current_item_results:
@@ -639,19 +670,31 @@ with tab_report:
                 report_source = "db"
 
     if report_source == "db" and db_report_results:
-        rows = []
+        items_db: dict[str, dict] = {}
         for r in db_report_results:
-            rows.append({
-                "Ítem": r["item_id"],
-                "Nombre": r.get("item_name", ""),
-                "Sección": get_section_name(r.get("section", "")),
-                "Estado": r["status"],
-                "Justificación": r.get("justificacion", ""),
-                "Detalles": "; ".join(r.get("detalles_observados", [])),
-                "Recomendaciones": "; ".join(r.get("recomendaciones", [])),
-                "Fecha": r.get("analyzed_at", ""),
-            })
-        df = pd.DataFrame(rows)
+            item_id = r["item_id"]
+            status = r["status"]
+            if item_id not in items_db:
+                items_db[item_id] = {
+                    "Ítem": item_id,
+                    "Nombre": r.get("item_name", ""),
+                    "Sección": get_section_name(r.get("section", "")),
+                    "Estado": status,
+                    "Justificación": r.get("justificacion", ""),
+                    "Detalles": "; ".join(r.get("detalles_observados", [])),
+                    "Recomendaciones": "; ".join(r.get("recomendaciones", [])),
+                    "Fotos": 1,
+                    "Fecha": r.get("analyzed_at", ""),
+                }
+            else:
+                prev = items_db[item_id]
+                prev["Fotos"] += 1
+                if _STATUS_SEVERITY.get(status, 1) > _STATUS_SEVERITY.get(prev["Estado"], 1):
+                    prev["Estado"] = status
+                    prev["Justificación"] = r.get("justificacion", "")
+                    prev["Detalles"] = "; ".join(r.get("detalles_observados", []))
+                    prev["Recomendaciones"] = "; ".join(r.get("recomendaciones", []))
+        df = pd.DataFrame(list(items_db.values()))
 
         sel_h = history[audit_options.index(selected_audit) - 1]
         st.markdown(

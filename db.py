@@ -390,14 +390,32 @@ def _auditorias_col():
 
 
 def calculate_section_scores(local: str, fecha: str) -> dict[str, int]:
-    """Compute score 0-100 per section from audit_results."""
+    """Compute score 0-100 per section from audit_results.
+
+    Multiple photos per item are consolidated: worst status wins
+    (No Conforme > Observación > Conforme).
+    """
     results = get_audit_results(local, fecha)
-    section_points: dict[str, list[int]] = {}
     score_map = {"Conforme": 100, "Observación": 50, "No Conforme": 0}
+    severity = {"Conforme": 0, "Observación": 1, "No Conforme": 2}
+
+    item_worst: dict[str, str] = {}
+    item_section: dict[str, str] = {}
     for r in results:
+        item_id = r.get("item_id", r.get("item_name", ""))
+        status = r.get("status", "Observación")
         sec = r.get("section", "")
-        pts = score_map.get(r.get("status", ""), 50)
+        item_section[item_id] = sec
+        prev = item_worst.get(item_id, "Conforme")
+        if severity.get(status, 1) > severity.get(prev, 0):
+            item_worst[item_id] = status
+
+    section_points: dict[str, list[int]] = {}
+    for item_id, worst in item_worst.items():
+        sec = item_section[item_id]
+        pts = score_map.get(worst, 50)
         section_points.setdefault(sec, []).append(pts)
+
     return {
         sec: round(sum(pts) / len(pts)) if pts else 0
         for sec, pts in section_points.items()
