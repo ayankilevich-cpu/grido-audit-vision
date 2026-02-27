@@ -372,3 +372,385 @@ def get_all_corrections(limit: int = 50) -> list[dict[str, Any]]:
         .limit(limit)
     )
     return list(cursor)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Colección: auditorias
+# ══════════════════════════════════════════════════════════════════════════
+
+
+def _auditorias_col():
+    uri = _get_uri()
+    if not uri:
+        raise RuntimeError("MONGODB_URI not configured")
+    client = _connect(uri)
+    col = client["grido_audit"]["auditorias"]
+    col.create_index([("local", 1), ("fecha", 1)], unique=True)
+    return col
+
+
+def calculate_section_scores(local: str, fecha: str) -> dict[str, int]:
+    """Compute score 0-100 per section from audit_results."""
+    results = get_audit_results(local, fecha)
+    section_points: dict[str, list[int]] = {}
+    score_map = {"Conforme": 100, "Observación": 50, "No Conforme": 0}
+    for r in results:
+        sec = r.get("section", "")
+        pts = score_map.get(r.get("status", ""), 50)
+        section_points.setdefault(sec, []).append(pts)
+    return {
+        sec: round(sum(pts) / len(pts)) if pts else 0
+        for sec, pts in section_points.items()
+    }
+
+
+def upsert_auditoria(
+    local: str,
+    fecha: str,
+    tipo: str,
+    created_by: str = "operativo",
+    franquiciado_id: str = "grido_default",
+) -> None:
+    scores = calculate_section_scores(local, fecha)
+    all_pts = [v for v in scores.values() if v is not None]
+    score_global = round(sum(all_pts) / len(all_pts)) if all_pts else 0
+    results = get_audit_results(local, fecha)
+    now = datetime.now(timezone.utc)
+    _auditorias_col().update_one(
+        {"local": local, "fecha": fecha},
+        {
+            "$set": {
+                "tipo_auditoria": tipo,
+                "scores": scores,
+                "score_global": score_global,
+                "items_evaluados": len(results),
+                "created_by": created_by,
+                "franquiciado_id": franquiciado_id,
+                "updated_at": now,
+            },
+            "$setOnInsert": {"created_at": now},
+        },
+        upsert=True,
+    )
+
+
+def get_auditoria(local: str, fecha: str) -> dict[str, Any] | None:
+    return _auditorias_col().find_one(
+        {"local": local, "fecha": fecha}, {"_id": 0}
+    )
+
+
+def get_auditorias_list(local: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
+    filt: dict = {}
+    if local:
+        filt["local"] = local
+    cursor = (
+        _auditorias_col()
+        .find(filt, {"_id": 0})
+        .sort("fecha", -1)
+        .limit(limit)
+    )
+    return list(cursor)
+
+
+def get_monthly_scores(local: str, months: int = 6) -> list[dict[str, Any]]:
+    cursor = (
+        _auditorias_col()
+        .find(
+            {"local": local},
+            {"_id": 0, "fecha": 1, "scores": 1, "score_global": 1},
+        )
+        .sort("fecha", -1)
+        .limit(months)
+    )
+    return list(reversed(list(cursor)))
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Colección: desvios
+# ══════════════════════════════════════════════════════════════════════════
+
+
+def _desvios_col():
+    uri = _get_uri()
+    if not uri:
+        raise RuntimeError("MONGODB_URI not configured")
+    client = _connect(uri)
+    col = client["grido_audit"]["desvios"]
+    col.create_index([("local", 1), ("estado", 1)])
+    col.create_index([("item_codigo", 1), ("fecha_deteccion", -1)])
+    return col
+
+
+def _check_recurrence(local: str, item_codigo: str, days: int = 60) -> int:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    return _desvios_col().count_documents({
+        "local": local,
+        "item_codigo": item_codigo,
+        "fecha_deteccion": {"$gte": cutoff},
+    })
+
+
+def create_desvio(
+    auditoria_fecha: str,
+    local: str,
+    seccion: str,
+    item_codigo: str,
+    item_descripcion: str,
+    nivel: str,
+    ai_justificacion: str = "",
+    prioridad: str = "media",
+    franquiciado_id: str = "grido_default",
+) -> str:
+    veces = _check_recurrence(local, item_codigo) + 1
+    tipo = "estructural" if veces >= 3 else "operativo"
+    doc = {
+        "auditoria_fecha": auditoria_fecha,
+        "fecha_deteccion": datetime.now(timezone.utc),
+        "local": local,
+        "seccion": seccion,
+        "item_codigo": item_codigo,
+        "item_descripcion": item_descripcion,
+        "nivel": nivel,
+        "tipo_desvio": tipo,
+        "responsable": "",
+        "fecha_limite": None,
+        "estado": "pendiente",
+        "fecha_cierre": None,
+        "comentario_cierre": None,
+        "reincidente": veces > 1,
+        "veces_detectado_60d": veces,
+        "prioridad": prioridad,
+        "ai_justificacion": ai_justificacion,
+        "franquiciado_id": franquiciado_id,
+        "created_at": datetime.now(timezone.utc),
+    }
+    r = _desvios_col().insert_one(doc)
+    return str(r.inserted_id)
+
+
+def get_desvios(
+    local: str | None = None,
+    estado: str | None = None,
+    seccion: str | None = None,
+) -> list[dict[str, Any]]:
+    filt: dict = {}
+    if local:
+        filt["local"] = local
+    if estado:
+        filt["estado"] = estado
+    if seccion:
+        filt["seccion"] = seccion
+    cursor = (
+        _desvios_col()
+        .find(filt)
+        .sort([("prioridad", 1), ("fecha_deteccion", -1)])
+    )
+    results = []
+    for doc in cursor:
+        doc["_id"] = str(doc["_id"])
+        results.append(doc)
+    return results
+
+
+def update_desvio(desvio_id: str, updates: dict) -> bool:
+    from bson import ObjectId
+    updates["updated_at"] = datetime.now(timezone.utc)
+    r = _desvios_col().update_one(
+        {"_id": ObjectId(desvio_id)}, {"$set": updates}
+    )
+    return r.modified_count > 0
+
+
+def close_desvio(desvio_id: str, comentario: str) -> bool:
+    return update_desvio(desvio_id, {
+        "estado": "cumplido",
+        "fecha_cierre": datetime.now(timezone.utc),
+        "comentario_cierre": comentario,
+    })
+
+
+def get_desvio_kpis(local: str | None = None, days: int = 30) -> dict[str, Any]:
+    filt: dict = {}
+    if local:
+        filt["local"] = local
+    col = _desvios_col()
+
+    abiertos = col.count_documents({**filt, "estado": {"$in": ["pendiente", "en_proceso"]}})
+    reincidentes = col.count_documents({**filt, "estado": {"$in": ["pendiente", "en_proceso"]}, "reincidente": True})
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cerrados_periodo = list(col.find({
+        **filt,
+        "estado": "cumplido",
+        "fecha_cierre": {"$gte": cutoff},
+    }))
+    en_plazo = sum(
+        1 for d in cerrados_periodo
+        if d.get("fecha_limite") and d["fecha_cierre"] <= d["fecha_limite"]
+    )
+    pct_en_plazo = round(en_plazo / len(cerrados_periodo) * 100) if cerrados_periodo else 0
+
+    cutoff_90 = datetime.now(timezone.utc) - timedelta(days=90)
+    cerrados_90 = list(col.find({
+        **filt,
+        "estado": "cumplido",
+        "fecha_cierre": {"$gte": cutoff_90},
+    }))
+    tiempos = [
+        (d["fecha_cierre"] - d["fecha_deteccion"]).days
+        for d in cerrados_90
+        if d.get("fecha_cierre") and d.get("fecha_deteccion")
+    ]
+    avg_cierre = round(sum(tiempos) / len(tiempos)) if tiempos else 0
+
+    return {
+        "abiertos": abiertos,
+        "reincidentes_activos": reincidentes,
+        "pct_cerrados_en_plazo": pct_en_plazo,
+        "avg_dias_cierre": avg_cierre,
+    }
+
+
+def get_top_reincidentes(local: str | None = None, limit: int = 5) -> list[dict[str, Any]]:
+    match: dict = {"reincidente": True}
+    if local:
+        match["local"] = local
+    pipeline = [
+        {"$match": match},
+        {"$group": {
+            "_id": {"item_codigo": "$item_codigo", "item_descripcion": "$item_descripcion", "local": "$local"},
+            "count": {"$sum": 1},
+            "ultimo": {"$max": "$fecha_deteccion"},
+        }},
+        {"$sort": {"count": -1}},
+        {"$limit": limit},
+    ]
+    return [
+        {
+            "item_codigo": d["_id"]["item_codigo"],
+            "item_descripcion": d["_id"]["item_descripcion"],
+            "local": d["_id"]["local"],
+            "count": d["count"],
+            "ultimo": d["ultimo"],
+        }
+        for d in _desvios_col().aggregate(pipeline)
+    ]
+
+
+def get_desvios_por_vencer(local: str | None = None, days: int = 7) -> list[dict[str, Any]]:
+    now = datetime.now(timezone.utc)
+    limit_date = now + timedelta(days=days)
+    filt: dict = {
+        "estado": {"$in": ["pendiente", "en_proceso"]},
+        "fecha_limite": {"$ne": None, "$lte": limit_date},
+    }
+    if local:
+        filt["local"] = local
+    cursor = _desvios_col().find(filt).sort("fecha_limite", 1)
+    results = []
+    for doc in cursor:
+        doc["_id"] = str(doc["_id"])
+        results.append(doc)
+    return results
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Colección: responsables
+# ══════════════════════════════════════════════════════════════════════════
+
+
+def _responsables_col():
+    uri = _get_uri()
+    if not uri:
+        raise RuntimeError("MONGODB_URI not configured")
+    client = _connect(uri)
+    return client["grido_audit"]["responsables"]
+
+
+def get_responsables(local: str | None = None) -> list[dict[str, Any]]:
+    filt: dict = {}
+    if local:
+        filt["local"] = local
+    cursor = _responsables_col().find(filt).sort("nombre", 1)
+    results = []
+    for doc in cursor:
+        doc["_id"] = str(doc["_id"])
+        results.append(doc)
+    return results
+
+
+def add_responsable(
+    nombre: str, rol: str, local: str, franquiciado_id: str = "grido_default"
+) -> str:
+    doc = {
+        "nombre": nombre,
+        "rol": rol,
+        "local": local,
+        "franquiciado_id": franquiciado_id,
+        "created_at": datetime.now(timezone.utc),
+    }
+    r = _responsables_col().insert_one(doc)
+    return str(r.inserted_id)
+
+
+def delete_responsable(resp_id: str) -> bool:
+    from bson import ObjectId
+    r = _responsables_col().delete_one({"_id": ObjectId(resp_id)})
+    return r.deleted_count > 0
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Colección: decisiones
+# ══════════════════════════════════════════════════════════════════════════
+
+
+def _decisiones_col():
+    uri = _get_uri()
+    if not uri:
+        raise RuntimeError("MONGODB_URI not configured")
+    client = _connect(uri)
+    return client["grido_audit"]["decisiones"]
+
+
+def create_decision(
+    desvio_id: str,
+    item_codigo: str,
+    local: str,
+    impacto: str = "",
+) -> str:
+    from bson import ObjectId
+    doc = {
+        "desvio_id": ObjectId(desvio_id),
+        "item_codigo": item_codigo,
+        "local": local,
+        "impacto": impacto,
+        "propuesta": "",
+        "estado_decision": "pendiente",
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    }
+    r = _decisiones_col().insert_one(doc)
+    return str(r.inserted_id)
+
+
+def update_decision(decision_id: str, updates: dict) -> bool:
+    from bson import ObjectId
+    updates["updated_at"] = datetime.now(timezone.utc)
+    r = _decisiones_col().update_one(
+        {"_id": ObjectId(decision_id)}, {"$set": updates}
+    )
+    return r.modified_count > 0
+
+
+def get_decisiones_pendientes(local: str | None = None) -> list[dict[str, Any]]:
+    filt: dict = {"estado_decision": "pendiente"}
+    if local:
+        filt["local"] = local
+    cursor = _decisiones_col().find(filt).sort("created_at", -1)
+    results = []
+    for doc in cursor:
+        doc["_id"] = str(doc["_id"])
+        doc["desvio_id"] = str(doc["desvio_id"])
+        results.append(doc)
+    return results

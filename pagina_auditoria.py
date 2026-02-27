@@ -19,6 +19,7 @@ from criteria import (
     CRITERIA,
     LOCALES,
     SECTIONS,
+    TIPOS_AUDITORIA,
     get_criteria_by_section,
     get_criterion_by_id,
     get_section_name,
@@ -290,6 +291,12 @@ with st.sidebar:
     )
     st.session_state.local_name = local_name
 
+    tipo_auditoria = st.selectbox(
+        "Tipo de auditoría",
+        TIPOS_AUDITORIA,
+        format_func=lambda t: t.replace("_", " ").title(),
+    )
+
     st.divider()
 
     _section_keys = list(SECTIONS.keys())
@@ -528,11 +535,29 @@ with tab_audit:
                         key=f"corr_notes_{orig_idx}",
                     )
 
+            _final_statuses = {}
+            for orig_idx, entry in current_item_results:
+                ai_st = entry["result"].get("status", "Observación")
+                corr_st = st.session_state.get(f"corr_status_{orig_idx}", ai_st)
+                _final_statuses[orig_idx] = corr_st
+
+            _any_non_conforme = any(s != "Conforme" for s in _final_statuses.values())
+            _create_desvio_checked = False
+            if _any_non_conforme and db.is_connected():
+                _worst = "No Conforme" if "No Conforme" in _final_statuses.values() else "Observación"
+                _create_desvio_checked = st.checkbox(
+                    f"Crear desvío para {criterion_id} (estado: {_worst})",
+                    value=True,
+                    key=f"crear_desvio_{criterion_id}",
+                )
+
             if st.button(
                 "✅ Confirmar y siguiente",
                 type="primary",
                 use_container_width=True,
             ):
+                fecha_now = datetime.now().strftime("%Y-%m")
+
                 for orig_idx, entry in current_item_results:
                     ai_status = entry["result"].get("status", "Observación")
                     corrected = st.session_state.get(f"corr_status_{orig_idx}", ai_status)
@@ -548,10 +573,40 @@ with tab_audit:
                                 ai_justificacion=entry["result"].get("justificacion", ""),
                                 correction_notes=notes,
                                 local=local_name,
-                                fecha=datetime.now().strftime("%Y-%m"),
+                                fecha=fecha_now,
                             )
                         except Exception:
                             pass
+
+                if _create_desvio_checked and db.is_connected():
+                    try:
+                        worst_status = "No Conforme" if "No Conforme" in _final_statuses.values() else "Observación"
+                        nivel = "rojo" if worst_status == "No Conforme" else "amarillo"
+                        prioridad = "alta" if worst_status == "No Conforme" else "media"
+                        justif = current_item_results[0][1]["result"].get("justificacion", "")
+                        db.create_desvio(
+                            auditoria_fecha=fecha_now,
+                            local=local_name,
+                            seccion=selected_criterion["section"],
+                            item_codigo=selected_criterion["id"],
+                            item_descripcion=selected_criterion["name"][:120],
+                            nivel=nivel,
+                            ai_justificacion=justif,
+                            prioridad=prioridad,
+                        )
+                    except Exception:
+                        pass
+
+                if db.is_connected() and local_name:
+                    try:
+                        db.upsert_auditoria(
+                            local=local_name,
+                            fecha=fecha_now,
+                            tipo=tipo_auditoria,
+                            created_by=st.session_state.get("rol", "operativo"),
+                        )
+                    except Exception:
+                        pass
 
                 if _advance_to_next_item():
                     st.rerun()

@@ -6,6 +6,18 @@ de Conforme / Observación / No Conforme.
 
 LOCALES = ["Edén", "España"]
 
+ROLES = ["operativo", "ejecutivo"]
+
+TIPOS_AUDITORIA = ["completa", "parcial", "sorpresa_operativa"]
+
+ROLES_RESPONSABLE = ["caja", "bodega", "limpieza", "encargada", "otro"]
+
+ESTADOS_DESVIO = ["pendiente", "en_proceso", "cumplido", "incumplido"]
+
+PRIORIDADES = ["alta", "media", "baja"]
+
+TIPOS_DESVIO = ["operativo", "conductual", "estructural"]
+
 SECTIONS = {
     "A": "Infraestructura — Estado de conservación y limpieza",
     "B": "Experiencia del cliente",
