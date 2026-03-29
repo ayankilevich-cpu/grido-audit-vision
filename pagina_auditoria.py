@@ -9,7 +9,9 @@ from __future__ import annotations
 import base64
 import io
 import json
+import os
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -25,6 +27,59 @@ from criteria import (
     get_section_name,
 )
 import db
+
+TOTAL_ITEMS = len(CRITERIA)
+DRAFT_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / ".audit_drafts"
+DRAFT_DIR.mkdir(exist_ok=True)
+
+
+def _draft_path() -> Path:
+    """Return a stable draft file path based on the current user role."""
+    rol = st.session_state.get("rol", "operativo")
+    return DRAFT_DIR / f"draft_{rol}.json"
+
+
+def _save_draft():
+    """Persist current audit state to a JSON file for later resumption."""
+    data = {
+        "local_name": st.session_state.get("local_name", ""),
+        "audit_date": st.session_state.get("audit_date", ""),
+        "results": [],
+        "saved_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    for entry in st.session_state.get("results", []):
+        serializable = {
+            "criterion": entry["criterion"],
+            "result": entry["result"],
+            "filename": entry.get("filename", ""),
+            "timestamp": entry.get("timestamp", ""),
+        }
+        data["results"].append(serializable)
+
+    _draft_path().write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _load_draft() -> dict | None:
+    """Load a previously saved draft, or return None."""
+    path = _draft_path()
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _delete_draft():
+    """Remove the draft file."""
+    path = _draft_path()
+    if path.exists():
+        path.unlink()
+
+
+def _get_unique_evaluated_items() -> set[str]:
+    """Return set of unique item IDs that have been evaluated in this session."""
+    return {r["criterion"]["id"] for r in st.session_state.get("results", [])}
 
 STATUS_COLORS = {
     "Conforme": "#2ecc71",
@@ -76,9 +131,43 @@ def _init_state():
         st.session_state.audit_date = datetime.now().strftime("%Y-%m-%d %H:%M")
     if "local_name" not in st.session_state:
         st.session_state.local_name = ""
+    if "draft_checked" not in st.session_state:
+        st.session_state.draft_checked = False
+    if "audit_finalized" not in st.session_state:
+        st.session_state.audit_finalized = False
 
 
 _init_state()
+
+# ── Draft recovery dialog ────────────────────────────────────────────────
+if not st.session_state.draft_checked:
+    st.session_state.draft_checked = True
+    draft = _load_draft()
+    if draft and draft.get("results") and not st.session_state.results:
+        st.session_state["_pending_draft"] = draft
+
+if "_pending_draft" in st.session_state:
+    draft = st.session_state["_pending_draft"]
+    n_items = len({r["criterion"]["id"] for r in draft["results"]})
+    st.info(
+        f"Se encontró una auditoría en curso guardada el **{draft['saved_at']}** "
+        f"para el local **{draft.get('local_name', '—')}** con **{n_items}/{TOTAL_ITEMS}** ítems evaluados."
+    )
+    col_resume, col_discard = st.columns(2)
+    with col_resume:
+        if st.button("▶️ Continuar auditoría", type="primary", use_container_width=True):
+            st.session_state.results = draft["results"]
+            st.session_state.local_name = draft.get("local_name", "")
+            st.session_state.audit_date = draft.get("audit_date", datetime.now().strftime("%Y-%m-%d %H:%M"))
+            st.session_state.audit_finalized = False
+            del st.session_state["_pending_draft"]
+            st.rerun()
+    with col_discard:
+        if st.button("🗑️ Descartar y empezar de cero", use_container_width=True):
+            _delete_draft()
+            del st.session_state["_pending_draft"]
+            st.rerun()
+    st.stop()
 
 
 # ── Navigation helper ────────────────────────────────────────────────────
@@ -349,20 +438,90 @@ with st.sidebar:
     selected_criterion = get_criterion_by_id(criterion_id)
 
     st.divider()
-    total = len(st.session_state.results)
-    conformes = sum(1 for r in st.session_state.results if r["result"]["status"] == "Conforme")
-    obs = sum(1 for r in st.session_state.results if r["result"]["status"] == "Observación")
-    no_conf = sum(1 for r in st.session_state.results if r["result"]["status"] == "No Conforme")
+    evaluated_ids = _get_unique_evaluated_items()
+    n_evaluated = len(evaluated_ids)
+    total_photos = len(st.session_state.results)
+    obs_ids = set()
+    nc_ids = set()
+    conf_ids = set()
+    for r in st.session_state.results:
+        item_id = r["criterion"]["id"]
+        status = r["result"]["status"]
+        if status == "No Conforme":
+            nc_ids.add(item_id)
+        elif status == "Observación":
+            obs_ids.add(item_id)
+        else:
+            conf_ids.add(item_id)
+    nc_ids_final = nc_ids
+    obs_ids_final = obs_ids - nc_ids
+    conf_ids_final = conf_ids - nc_ids - obs_ids
 
-    st.metric("Ítems evaluados", total)
+    st.markdown(f"**Progreso: {n_evaluated}/{TOTAL_ITEMS} ítems**")
+    st.progress(n_evaluated / TOTAL_ITEMS if TOTAL_ITEMS > 0 else 0)
+
     cols = st.columns(3)
-    cols[0].metric("✅", conformes)
-    cols[1].metric("⚠️", obs)
-    cols[2].metric("❌", no_conf)
+    cols[0].metric("✅", len(conf_ids_final))
+    cols[1].metric("⚠️", len(obs_ids_final))
+    cols[2].metric("❌", len(nc_ids_final))
 
-    if st.button("🗑️ Reiniciar auditoría", use_container_width=True):
+    if total_photos > 0:
+        st.caption(f"📷 {total_photos} foto(s) analizadas en total")
+
+    st.divider()
+    st.markdown("**Finalizar auditoría**")
+
+    all_complete = n_evaluated >= TOTAL_ITEMS
+    if st.button(
+        f"✅ Finalizar completo ({n_evaluated}/{TOTAL_ITEMS})",
+        use_container_width=True,
+        disabled=not all_complete,
+        type="primary" if all_complete else "secondary",
+        help="Se habilita cuando los 61 ítems están evaluados" if not all_complete else "Finalizar la auditoría completa",
+    ):
+        _delete_draft()
+        st.session_state.audit_finalized = True
+        if db.is_connected() and local_name:
+            try:
+                fecha_now = datetime.now().strftime("%Y-%m")
+                db.upsert_auditoria(
+                    local=local_name,
+                    fecha=fecha_now,
+                    tipo=tipo_auditoria,
+                    created_by=st.session_state.get("rol", "operativo"),
+                )
+            except Exception:
+                pass
+        st.success(f"Auditoría COMPLETA finalizada con {n_evaluated}/{TOTAL_ITEMS} ítems.")
+
+    if st.button(
+        "⚠️ Finalizar parcial",
+        use_container_width=True,
+        disabled=n_evaluated == 0,
+        help="Cerrar la auditoría con los ítems evaluados hasta ahora",
+    ):
+        _delete_draft()
+        st.session_state.audit_finalized = True
+        if db.is_connected() and local_name:
+            try:
+                fecha_now = datetime.now().strftime("%Y-%m")
+                db.upsert_auditoria(
+                    local=local_name,
+                    fecha=fecha_now,
+                    tipo="parcial",
+                    created_by=st.session_state.get("rol", "operativo"),
+                )
+            except Exception:
+                pass
+        st.warning(f"Auditoría PARCIAL finalizada con {n_evaluated}/{TOTAL_ITEMS} ítems.")
+
+    st.divider()
+    if st.button("🔄 Resetear auditoría", use_container_width=True, type="secondary"):
+        _delete_draft()
         st.session_state.results = []
         st.session_state.audit_date = datetime.now().strftime("%Y-%m-%d %H:%M")
+        st.session_state.audit_finalized = False
+        st.session_state.draft_checked = True
         st.rerun()
 
 
@@ -495,6 +654,7 @@ with tab_audit:
                         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     }
                     st.session_state.results.append(entry)
+                    _save_draft()
 
                     if db.is_connected() and local_name:
                         try:
@@ -638,6 +798,8 @@ with tab_audit:
                         )
                     except Exception:
                         pass
+
+                _save_draft()
 
                 if _advance_to_next_item():
                     st.rerun()
