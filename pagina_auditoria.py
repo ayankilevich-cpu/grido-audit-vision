@@ -206,6 +206,33 @@ if "_pending_draft" in st.session_state:
 
 
 # ── Navigation helper ────────────────────────────────────────────────────
+def _go_to_prev_item() -> bool:
+    """Schedule navigation to the previous audit item."""
+    section_keys = list(SECTIONS.keys())
+    current_section = st.session_state.get("aud_section", section_keys[0])
+    current_criterion = st.session_state.get("aud_criterion", "")
+
+    criteria_ids = [c["id"] for c in get_criteria_by_section(current_section)]
+
+    if current_criterion in criteria_ids:
+        idx = criteria_ids.index(current_criterion)
+        if idx - 1 >= 0:
+            st.session_state._nav_section = current_section
+            st.session_state._nav_criterion = criteria_ids[idx - 1]
+            return True
+
+    sec_idx = section_keys.index(current_section) if current_section in section_keys else 0
+    if sec_idx - 1 >= 0:
+        prev_sec = section_keys[sec_idx - 1]
+        prev_criteria = get_criteria_by_section(prev_sec)
+        if prev_criteria:
+            st.session_state._nav_section = prev_sec
+            st.session_state._nav_criterion = prev_criteria[-1]["id"]
+            return True
+
+    return False
+
+
 def _advance_to_next_item():
     """Schedule navigation to the next audit item (consumed before widgets render)."""
     section_keys = list(SECTIONS.keys())
@@ -596,6 +623,56 @@ with tab_audit:
 
     st.divider()
 
+    # ── Navegación wizard (tablet) ────────────────────────────────
+    _is_first = False
+    _is_last = False
+    _section_keys_nav = list(SECTIONS.keys())
+    _current_sec_nav = st.session_state.get("aud_section", _section_keys_nav[0])
+    _current_crit_nav = st.session_state.get("aud_criterion", "")
+    _crit_ids_nav = [c["id"] for c in get_criteria_by_section(_current_sec_nav)]
+    if _crit_ids_nav:
+        _is_first = (
+            _section_keys_nav.index(_current_sec_nav) == 0
+            and _crit_ids_nav.index(_current_crit_nav) == 0
+            if _current_crit_nav in _crit_ids_nav else False
+        )
+        _is_last = (
+            _section_keys_nav.index(_current_sec_nav) == len(_section_keys_nav) - 1
+            and _crit_ids_nav.index(_current_crit_nav) == len(_crit_ids_nav) - 1
+            if _current_crit_nav in _crit_ids_nav else False
+        )
+
+    _evaluated_ids = _get_unique_evaluated_items()
+    _total_nav = len(CRITERIA)
+    _done_nav = len(_evaluated_ids)
+    st.progress(
+        _done_nav / _total_nav if _total_nav else 0,
+        text=f"**{_done_nav} / {_total_nav}** ítems evaluados",
+    )
+
+    _nav_col1, _nav_col2 = st.columns(2)
+    with _nav_col1:
+        if st.button(
+            "← Anterior",
+            use_container_width=True,
+            disabled=_is_first,
+            key="btn_prev_top",
+        ):
+            _go_to_prev_item()
+            st.rerun()
+    with _nav_col2:
+        if st.button(
+            "Siguiente →",
+            use_container_width=True,
+            disabled=_is_last,
+            key="btn_next_top",
+            type="primary",
+        ):
+            _advance_to_next_item()
+            st.rerun()
+
+    st.divider()
+
     # ── Cargar fotos desde MongoDB o subir manualmente ────────────
     db_photos = []
     if db.is_connected() and local_name:
@@ -846,6 +923,29 @@ with tab_audit:
             with st.expander(f"📋 Resultados anteriores ({len(other_results)})", expanded=False):
                 for _, entry in reversed(other_results):
                     _render_result(entry["result"], entry["criterion"], _)
+
+    # ── Navegación wizard inferior ─────────────────────────────────
+    st.divider()
+    _nav_bot1, _nav_bot2 = st.columns(2)
+    with _nav_bot1:
+        if st.button(
+            "← Anterior",
+            use_container_width=True,
+            disabled=_is_first,
+            key="btn_prev_bot",
+        ):
+            _go_to_prev_item()
+            st.rerun()
+    with _nav_bot2:
+        if st.button(
+            "Siguiente →",
+            use_container_width=True,
+            disabled=_is_last,
+            key="btn_next_bot",
+            type="primary",
+        ):
+            _advance_to_next_item()
+            st.rerun()
 
 # ─── Tab: Reporte ───────────────────────────────────────────────────────
 with tab_report:

@@ -14,6 +14,83 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# ── CSS: barra de navegación inferior fija ──────────────────────────────
+st.markdown(
+    """
+<style>
+/* Padding para que el contenido no quede tapado por la barra */
+.block-container {
+    padding-bottom: 80px !important;
+}
+
+/* Barra inferior fija */
+.nav-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: #1a1a2e;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 64px;
+    border-top: 2px solid #6C63FF;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.3);
+}
+
+/* Links dentro de la barra */
+.nav-bottom a {
+    color: rgba(255,255,255,0.6) !important;
+    text-decoration: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    min-width: 64px;
+    text-align: center;
+}
+
+.nav-bottom a:hover {
+    color: white !important;
+    background: rgba(108, 99, 255, 0.3);
+}
+
+.nav-bottom a .nav-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
+# ── Barra de navegación inferior ────────────────────────────────────────
+st.markdown(
+    """
+<div class="nav-bottom">
+  <a href="/pagina_captura">
+    <span class="nav-icon">📸</span>Captura
+  </a>
+  <a href="/pagina_auditoria">
+    <span class="nav-icon">🔍</span>Auditar
+  </a>
+  <a href="/pagina_mejoras">
+    <span class="nav-icon">📊</span>Mejoras
+  </a>
+  <a href="/pagina_historial">
+    <span class="nav-icon">📈</span>Historial
+  </a>
+</div>
+""",
+    unsafe_allow_html=True,
+)
+
 if "rol" not in st.session_state:
     st.session_state["rol"] = "operativo"
 if "authenticated" not in st.session_state:
