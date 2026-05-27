@@ -28,6 +28,41 @@ from criteria import (
 )
 import db
 
+# ── CSS tablet ──────────────────────────────────────────────────────────
+_TABLET_CSS = """
+<style>
+/* Touch targets generales */
+.stButton > button {
+    min-height: 48px !important;
+    font-size: 1rem !important;
+}
+div[data-testid="stSelectbox"] > div > div {
+    min-height: 48px !important;
+    font-size: 1rem !important;
+}
+.stTabs [data-baseweb="tab"] {
+    min-height: 48px !important;
+    padding: 0 18px !important;
+    font-size: 0.9rem !important;
+}
+/* File uploader más grande */
+div[data-testid="stFileUploader"] section {
+    min-height: 80px !important;
+}
+div[data-testid="stFileUploader"] label {
+    font-size: 1rem !important;
+}
+/* Expanders */
+div[data-testid="stExpander"] summary {
+    min-height: 48px !important;
+    font-size: 0.95rem !important;
+}
+/* Espaciado del contenedor */
+.block-container { padding-top: 1.5rem !important; }
+</style>
+"""
+st.markdown(_TABLET_CSS, unsafe_allow_html=True)
+
 TOTAL_ITEMS = len(CRITERIA)
 DRAFT_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / ".audit_drafts"
 DRAFT_DIR.mkdir(exist_ok=True)

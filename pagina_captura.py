@@ -43,13 +43,39 @@ SECTION_SHORT = {
 st.markdown(
     """
 <style>
-.stButton>button {min-height:44px;}
-div[data-testid="stMetric"] {
-    background:#f8f9fa; border-radius:8px; padding:.5rem;
-    text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.08);
+/* Touch targets — mínimo 44px para tablet */
+.stButton>button {
+    min-height: 48px !important;
+    font-size: 1rem !important;
 }
-div[data-testid="stMetric"] label {font-size:.75rem !important;}
-div[data-testid="stMetric"] [data-testid="stMetricValue"] {font-size:1.1rem !important;}
+div[data-testid="stSelectbox"] > div > div {
+    min-height: 48px !important;
+    font-size: 1rem !important;
+}
+.stTabs [data-baseweb="tab"] {
+    min-height: 48px !important;
+    font-size: 0.95rem !important;
+    padding: 0 20px !important;
+}
+div[data-testid="stFileUploader"] label {
+    min-height: 48px !important;
+}
+div[data-testid="stExpander"] summary {
+    min-height: 48px !important;
+    font-size: 0.95rem !important;
+}
+/* Métricas de progreso */
+div[data-testid="stMetric"] {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: .5rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+div[data-testid="stMetric"] label { font-size: .75rem !important; }
+div[data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 1.1rem !important; }
+/* Más espaciado entre elementos en tablet */
+.block-container { padding-top: 1.5rem !important; }
 </style>""",
     unsafe_allow_html=True,
 )
@@ -320,7 +346,43 @@ if selected:
         # ── Agregar fotos ─────────────────────────────────────────────
 
         st.markdown("**Agregar fotos:**")
-        tab_gallery, tab_camera = st.tabs(["📁 Galería / Archivo", "📷 Cámara"])
+        tab_camera, tab_gallery = st.tabs(["📷 Cámara", "📁 Galería / Archivo"])
+
+        with tab_camera:
+            camera_photo = st.camera_input(
+                "Sacá una foto",
+                key=f"ccam_{item_id}",
+                label_visibility="collapsed",
+            )
+
+            if camera_photo:
+                if st.button(
+                    "💾 Guardar foto",
+                    key=f"csave_cam_{item_id}",
+                    type="primary",
+                    use_container_width=True,
+                ):
+                    try:
+                        compressed = compress_photo(camera_photo)
+                        if use_mongo:
+                            name = db.next_photo_name(local_name, fecha_str, item_id)
+                            db.save_photo(
+                                local_name, fecha_str, section, item_id,
+                                compressed, name,
+                            )
+                            _get_counts.clear()
+                        else:
+                            code = item_id.replace(".", "")
+                            if item_id not in st.session_state.cap_photos:
+                                st.session_state.cap_photos[item_id] = []
+                            n = len(st.session_state.cap_photos[item_id]) + 1
+                            st.session_state.cap_photos[item_id].append(
+                                {"data": compressed, "name": f"{code}_{n:03d}.jpg"}
+                            )
+                        st.success(f"✅ Foto guardada para {item_id}")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error: {e}")
 
         with tab_gallery:
             uploaded = st.file_uploader(
@@ -364,41 +426,6 @@ if selected:
                             _get_counts.clear()
                         st.success(f"✅ {saved} foto(s) guardadas para {item_id}")
                         st.rerun()
-
-        with tab_camera:
-            camera_photo = st.camera_input(
-                "Sacá una foto",
-                key=f"ccam_{item_id}",
-                label_visibility="collapsed",
-            )
-            if camera_photo:
-                if st.button(
-                    "💾 Guardar foto",
-                    key=f"csave_cam_{item_id}",
-                    type="primary",
-                    use_container_width=True,
-                ):
-                    try:
-                        compressed = compress_photo(camera_photo)
-                        if use_mongo:
-                            name = db.next_photo_name(local_name, fecha_str, item_id)
-                            db.save_photo(
-                                local_name, fecha_str, section, item_id,
-                                compressed, name,
-                            )
-                            _get_counts.clear()
-                        else:
-                            code = item_id.replace(".", "")
-                            if item_id not in st.session_state.cap_photos:
-                                st.session_state.cap_photos[item_id] = []
-                            n = len(st.session_state.cap_photos[item_id]) + 1
-                            st.session_state.cap_photos[item_id].append(
-                                {"data": compressed, "name": f"{code}_{n:03d}.jpg"}
-                            )
-                        st.success(f"✅ Foto guardada para {item_id}")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error: {e}")
 
 # ── Finalizar ─────────────────────────────────────────────────────────────
 

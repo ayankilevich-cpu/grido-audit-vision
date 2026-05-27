@@ -5,13 +5,13 @@ Ejecutar con:  streamlit run app.py
 
 import streamlit as st
 
-EJECUTIVO_PASSWORD = "1234"
+EJECUTIVO_PASSWORD = st.secrets.get("EXEC_PASSWORD", "1234")
 
 st.set_page_config(
     page_title="Grido Audit Vision",
     page_icon="🍦",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 if "rol" not in st.session_state:
