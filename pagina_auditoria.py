@@ -92,6 +92,7 @@ def _save_draft():
         data["results"].append(serializable)
 
     _draft_path().write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    st.toast("Progreso guardado", icon="💾")
 
 
 def _load_draft() -> dict | None:
@@ -1013,6 +1014,53 @@ with tab_report:
 
     if df is not None and not df.empty:
         st.divider()
+
+        # ── Gráfico de barras por sección (colores Grido) ─────────────────
+        try:
+            import plotly.graph_objects as go
+
+            _SECTION_COLORS = {
+                "A": "#0033CC",
+                "B": "#00AEEF",
+                "C": "#8DC63F",
+                "D": "#E8185A",
+                "E": "#F5841F",
+            }
+
+            _scores_for_chart = st.session_state.get("section_scores", {})
+            if _scores_for_chart:
+                _sec_labels = []
+                _sec_values = []
+                _sec_colors = []
+                for _sec_key in sorted(_scores_for_chart.keys()):
+                    _sec_labels.append(f"Sección {_sec_key}")
+                    _val = _scores_for_chart[_sec_key]
+                    _sec_values.append(round(_val * 100, 1) if _val <= 1 else round(_val, 1))
+                    _sec_colors.append(_SECTION_COLORS.get(_sec_key, "#0033CC"))
+
+                _fig = go.Figure(
+                    go.Bar(
+                        x=_sec_values,
+                        y=_sec_labels,
+                        orientation="h",
+                        marker_color=_sec_colors,
+                        text=[f"{v:.1f}%" for v in _sec_values],
+                        textposition="outside",
+                    )
+                )
+                _fig.update_layout(
+                    title="Puntaje por sección",
+                    xaxis=dict(range=[0, 110], showgrid=False, visible=False),
+                    yaxis=dict(autorange="reversed"),
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    margin=dict(l=10, r=40, t=40, b=10),
+                    height=260,
+                    font=dict(size=13),
+                )
+                st.plotly_chart(_fig, use_container_width=True)
+        except Exception:
+            pass  # Si Plotly no está disponible o los datos faltan, se omite el gráfico silenciosamente
 
         summary_col1, summary_col2 = st.columns([1, 2])
         with summary_col1:

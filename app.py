@@ -30,18 +30,18 @@ st.markdown(
     left: 0;
     right: 0;
     z-index: 9999;
-    background: #1a1a2e;
+    background: #0033CC;
     display: flex;
     justify-content: space-around;
     align-items: center;
     height: 64px;
-    border-top: 2px solid #6C63FF;
-    box-shadow: 0 -2px 12px rgba(0,0,0,0.3);
+    border-top: 2px solid #E63329;
+    box-shadow: 0 -2px 12px rgba(0,51,204,0.35);
 }
 
 /* Links dentro de la barra */
 .nav-bottom a {
-    color: rgba(255,255,255,0.6) !important;
+    color: rgba(255,255,255,0.75) !important;
     text-decoration: none !important;
     display: flex;
     flex-direction: column;
@@ -57,7 +57,7 @@ st.markdown(
 
 .nav-bottom a:hover {
     color: white !important;
-    background: rgba(108, 99, 255, 0.3);
+    background: rgba(230, 51, 41, 0.25);
 }
 
 .nav-bottom a .nav-icon {
