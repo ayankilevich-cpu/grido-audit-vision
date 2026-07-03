@@ -37,10 +37,25 @@ st.markdown(
     border-top: 2px solid #E63329;
     box-shadow: 0 -2px 12px rgba(0,51,204,0.35);
     padding: 6px 8px 2px 8px;
+    height: 68px;
+    overflow: hidden;
 }
 
+/* Streamlit apila las columnas en vertical en pantallas angostas (tablet/celu);
+   forzamos que la barra siempre quede en fila. */
 .st-key-bottom_nav div[data-testid="stHorizontalBlock"] {
-    gap: 4px;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    width: 100% !important;
+}
+
+.st-key-bottom_nav div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+    width: 25% !important;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
 }
 
 /* Botones dentro de la barra, con look de link */
@@ -54,8 +69,9 @@ st.markdown(
     line-height: 1.3 !important;
     white-space: pre-line !important;
     border-radius: 8px !important;
-    padding: 6px 4px !important;
+    padding: 6px 2px !important;
     min-height: 44px !important;
+    width: 100% !important;
 }
 
 .st-key-bottom_nav .stButton > button:hover {
