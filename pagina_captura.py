@@ -386,9 +386,9 @@ with st.sidebar:
     st.markdown("### 📖 Instrucciones")
     st.markdown(
         "1. Tocá **⚙️** arriba solo si necesitás cambiar local, fecha o tipo\n"
-        "2. Elegí la sección y el ítem (o usá ← / →)\n"
-        "3. Tocá Conforme / Observación / No Conforme y, si hace falta, una nota\n"
-        "4. Si querés, agregá una foto en **📷** (opcional)\n"
+        "2. Sacá o subí la foto (opcional)\n"
+        "3. Elegí a qué sección e ítem corresponde (o usá ← / →)\n"
+        "4. Tocá Conforme / Observación / No Conforme y, si hace falta, una nota\n"
         "5. Tocá **✅ Guardar y siguiente** — guarda todo y pasa al próximo ítem\n"
         "6. Al terminar, revisá el reporte en 🔍 Auditoría"
     )
@@ -421,18 +421,61 @@ for i, (sec_key, short_name) in enumerate(SECTION_SHORT.items()):
 # ── Captura ───────────────────────────────────────────────────────────────
 
 st.divider()
-st.markdown("### 📷 Capturar y evaluar")
+
+# ── 1. Sacá la foto (primero, antes de elegir el ítem) ─────────────────────
+st.markdown("### 📷 Sacá la foto")
+st.caption("Sacá o subí la foto primero; abajo elegís a qué ítem corresponde.")
+
+if "_cap_photo_round" not in st.session_state:
+    st.session_state["_cap_photo_round"] = 0
+_round = st.session_state["_cap_photo_round"]
+
+_cam_col, _gal_col = st.columns(2)
+with _cam_col:
+    camera_photo = st.camera_input("Cámara", key=f"ccam_{_round}")
+with _gal_col:
+    uploaded = st.file_uploader(
+        "O subí desde galería",
+        type=["jpg", "jpeg", "png", "webp"],
+        accept_multiple_files=True,
+        key=f"cupload_{_round}",
+    )
+
+if camera_photo or uploaded:
+    st.success("📸 Foto lista. Elegí abajo a qué ítem corresponde y guardá.")
+
+st.divider()
+
+# ── 2. ¿A qué ítem corresponde? ─────────────────────────────────────────────
+st.markdown("### 🏷️ ¿A qué ítem corresponde?")
 
 # Navegación pendiente (ver botones ← / → más abajo) — debe aplicarse ANTES
 # de instanciar los selectbox de sección/ítem.
 _nav_sec = st.session_state.pop("_cap_nav_section", None)
 _nav_item_id = st.session_state.pop("_cap_nav_item", None)
+
+# Al entrar a esta página desde otra (barra inferior), saltar directo al
+# próximo ítem sin evaluar en vez de quedarse en uno ya evaluado.
+_should_resume = st.session_state.pop("_cap_should_resume", False)
+if _should_resume and _nav_sec is None:
+    _next_pending = next((c for c in CRITERIA if c["id"] not in _eval_map), None)
+    if _next_pending:
+        _nav_sec = _next_pending["section"]
+        _nav_item_id = _next_pending["id"]
+
 if _nav_sec is not None:
     st.session_state.pop("cap_section", None)
     st.session_state.pop("cap_item", None)
 
 _section_keys = list(SECTIONS.keys())
-_sec_default = _section_keys.index(_nav_sec) if _nav_sec in _section_keys else 0
+if _nav_sec in _section_keys:
+    _sec_default = _section_keys.index(_nav_sec)
+elif st.session_state.get("cap_section") in _section_keys:
+    # No hay navegación pendiente: mantener la sección donde estaba, en vez
+    # de volver siempre a la primera (A).
+    _sec_default = _section_keys.index(st.session_state["cap_section"])
+else:
+    _sec_default = 0
 section = st.selectbox(
     "Sección",
     _section_keys,
@@ -460,7 +503,13 @@ def _item_label(item: dict) -> str:
 
 
 _item_ids = [c["id"] for c in section_items]
-_item_default = _item_ids.index(_nav_item_id) if _nav_item_id in _item_ids else 0
+_prev_selected_item = st.session_state.get("cap_item")
+if _nav_item_id in _item_ids:
+    _item_default = _item_ids.index(_nav_item_id)
+elif isinstance(_prev_selected_item, dict) and _prev_selected_item.get("id") in _item_ids:
+    _item_default = _item_ids.index(_prev_selected_item["id"])
+else:
+    _item_default = 0
 selected = st.selectbox(
     "Ítem", section_items, index=_item_default, format_func=_item_label, key="cap_item"
 )
@@ -520,7 +569,57 @@ if selected:
     if item_id in NO_PHOTO_ITEMS:
         st.caption("ℹ️ Ítem oral/presencial — no requiere foto.")
 
-    # ── Evaluación ───────────────────────────────────────────────────
+    # ── Fotos ya cargadas para este ítem (evidencia previa) ────────────
+    if item_id not in NO_PHOTO_ITEMS:
+        if use_mongo:
+            item_photos = db.get_photos_for_item(local_name, fecha_str, item_id)
+        else:
+            item_photos_raw = st.session_state.cap_photos.get(item_id, [])
+            item_photos = [
+                {"_id": str(i), "photo_data": p["data"], "photo_name": p["name"]}
+                for i, p in enumerate(item_photos_raw)
+            ]
+
+        _n_photos = len(item_photos)
+        if _n_photos:
+            _preview_n = min(_n_photos, 5)
+            _preview_cols = st.columns(_preview_n + (1 if _n_photos > 5 else 0))
+            for i in range(_preview_n):
+                with _preview_cols[i]:
+                    st.image(item_photos[i]["photo_data"], width=48)
+            if _n_photos > 5:
+                with _preview_cols[5]:
+                    st.caption(f"+{_n_photos - 5}")
+
+            with st.expander(f"📸 Fotos ya cargadas para este ítem ({_n_photos})", expanded=False):
+                for row_start in range(0, len(item_photos), 3):
+                    cols = st.columns(3)
+                    for j in range(3):
+                        idx = row_start + j
+                        if idx >= len(item_photos):
+                            break
+                        photo = item_photos[idx]
+                        with cols[j]:
+                            st.image(
+                                photo["photo_data"],
+                                caption=photo["photo_name"],
+                                use_container_width=True,
+                            )
+                            if st.button(
+                                "🗑️",
+                                key=f"cdel_{item_id}_{idx}",
+                                help="Borrar esta foto",
+                            ):
+                                if use_mongo:
+                                    db.delete_photo(str(photo["_id"]))
+                                    _get_counts.clear()
+                                else:
+                                    st.session_state.cap_photos[item_id].pop(idx)
+                                    if not st.session_state.cap_photos[item_id]:
+                                        del st.session_state.cap_photos[item_id]
+                                st.rerun()
+
+    # ── 3. Evaluación ────────────────────────────────────────────────────
     st.markdown("### ✍️ Evaluación")
 
     _prev_eval = _eval_map.get(item_id)
@@ -573,83 +672,7 @@ if selected:
             f"{_prev_eval.get('status','')} — {_prev_eval.get('analyzed_at','')}"
         )
 
-    # ── Foto (opcional, colapsada) ────────────────────────────────────
-    camera_photo = None
-    uploaded = None
-    if item_id not in NO_PHOTO_ITEMS:
-        if use_mongo:
-            item_photos = db.get_photos_for_item(local_name, fecha_str, item_id)
-        else:
-            item_photos_raw = st.session_state.cap_photos.get(item_id, [])
-            item_photos = [
-                {"_id": str(i), "photo_data": p["data"], "photo_name": p["name"]}
-                for i, p in enumerate(item_photos_raw)
-            ]
-
-        _n_photos = len(item_photos)
-        if _n_photos:
-            _preview_n = min(_n_photos, 5)
-            _preview_cols = st.columns(_preview_n + (1 if _n_photos > 5 else 0))
-            for i in range(_preview_n):
-                with _preview_cols[i]:
-                    st.image(item_photos[i]["photo_data"], width=48)
-            if _n_photos > 5:
-                with _preview_cols[5]:
-                    st.caption(f"+{_n_photos - 5}")
-
-        _photo_label = (
-            f"📷 Evidencia fotográfica ({_n_photos} foto{'s' if _n_photos != 1 else ''})"
-            if _n_photos
-            else "📷 Agregar foto (opcional)"
-        )
-        with st.expander(_photo_label, expanded=False):
-            if item_photos:
-                st.markdown(f"**Fotos guardadas: {len(item_photos)}**")
-                for row_start in range(0, len(item_photos), 3):
-                    cols = st.columns(3)
-                    for j in range(3):
-                        idx = row_start + j
-                        if idx >= len(item_photos):
-                            break
-                        photo = item_photos[idx]
-                        with cols[j]:
-                            st.image(
-                                photo["photo_data"],
-                                caption=photo["photo_name"],
-                                use_container_width=True,
-                            )
-                            if st.button(
-                                "🗑️",
-                                key=f"cdel_{item_id}_{idx}",
-                                help="Borrar esta foto",
-                            ):
-                                if use_mongo:
-                                    db.delete_photo(str(photo["_id"]))
-                                    _get_counts.clear()
-                                else:
-                                    st.session_state.cap_photos[item_id].pop(idx)
-                                    if not st.session_state.cap_photos[item_id]:
-                                        del st.session_state.cap_photos[item_id]
-                                st.rerun()
-
-            st.markdown("**Agregar foto:**")
-            tab_camera, tab_gallery = st.tabs(["📷 Cámara", "📁 Galería / Archivo"])
-            with tab_camera:
-                camera_photo = st.camera_input(
-                    "Sacá una foto", key=f"ccam_{item_id}", label_visibility="collapsed"
-                )
-            with tab_gallery:
-                uploaded = st.file_uploader(
-                    "Elegí fotos",
-                    type=["jpg", "jpeg", "png", "webp"],
-                    accept_multiple_files=True,
-                    key=f"cupload_{item_id}",
-                    label_visibility="collapsed",
-                )
-            if camera_photo or uploaded:
-                st.caption("La foto se guarda al tocar **✅ Guardar y siguiente** más abajo.")
-
-    # ── Guardar (único botón) ───────────────────────────────────────────
+    # ── 4. Guardar (único botón) ────────────────────────────────────────
     st.divider()
     if st.button(
         "✅ Guardar y siguiente",
@@ -696,6 +719,8 @@ if selected:
 
         if ok:
             st.success(f"✅ Guardado {item_id}" + (" con foto" if saved_photo else ""))
+            if saved_photo:
+                st.session_state["_cap_photo_round"] += 1
             _cap_advance()
             st.rerun()
 

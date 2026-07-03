@@ -145,4 +145,12 @@ pg = st.navigation(
     ]
 )
 
+# Si se acaba de entrar a Captura desde otra página, avisarle a esa página
+# que debe saltar directo al próximo ítem sin evaluar (en vez de quedarse
+# en la última sección/ítem que haya quedado seleccionado por defecto).
+if st.session_state.get("_last_page") != pg.title:
+    if pg.title == "Captura de Fotos":
+        st.session_state["_cap_should_resume"] = True
+    st.session_state["_last_page"] = pg.title
+
 pg.run()
