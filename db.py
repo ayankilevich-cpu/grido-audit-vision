@@ -3,8 +3,8 @@ Grido Audit Vision — Capa de datos (MongoDB Atlas).
 
 Colecciones:
   photos         — fotos comprimidas (se purgan a los 6 meses)
-  audit_results  — resultados del análisis IA (se mantienen indefinidamente)
-  corrections    — correcciones del auditor humano (retroalimentación para mejorar la IA)
+  audit_results  — resultados de evaluación por ítem, manual o IA-beta (se mantienen indefinidamente)
+  corrections    — casos donde la sugerencia de IA (beta) difirió del criterio del auditor humano
 """
 
 from __future__ import annotations

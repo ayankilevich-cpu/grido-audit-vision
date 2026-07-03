@@ -130,7 +130,7 @@ with st.sidebar:
 pg = st.navigation(
     [
         st.Page("pagina_captura.py", title="Captura de Fotos", icon="📸"),
-        st.Page("pagina_auditoria.py", title="Auditoría IA", icon="🔍"),
+        st.Page("pagina_auditoria.py", title="Auditoría", icon="🔍"),
         st.Page("pagina_mejoras.py", title="Planes de Mejora", icon="📊"),
         st.Page("pagina_historial.py", title="Historial", icon="📈"),
     ]

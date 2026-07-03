@@ -1,7 +1,8 @@
 """
-Grido Audit Vision — Página de auditoría con IA.
-Sube fotos de tu heladería y validá el cumplimiento de los criterios
-de la Guía de Auditoría Operativa Grido.
+Grido Audit Vision — Página de auditoría.
+Revisá las fotos de tu heladería y evaluá manualmente el cumplimiento de los
+criterios de la Guía de Auditoría Operativa Grido. Incluye una sugerencia de
+IA opcional (beta), pero la evaluación final siempre la define el auditor.
 """
 
 from __future__ import annotations
@@ -432,26 +433,7 @@ def _to_excel(df: pd.DataFrame) -> bytes:
 
 # ── Sidebar ─────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.caption("Auditoría interna con IA")
-
-    st.divider()
-
-    _default_key = st.secrets.get("OPENAI_API_KEY", "") if hasattr(st, "secrets") else ""
-    api_key = st.text_input(
-        "🔑 OpenAI API Key",
-        value=_default_key,
-        type="password",
-        help=(
-            "Se necesita una clave de OpenAI con acceso a gpt-4o. "
-            "En Streamlit Cloud se puede configurar en Settings → Secrets."
-        ),
-    )
-
-    model_choice = st.selectbox(
-        "Modelo de IA",
-        ["gpt-4o", "gpt-4o-mini"],
-        help="gpt-4o es más preciso; gpt-4o-mini es más rápido y económico.",
-    )
+    st.caption("Auditoría interna — evaluación manual")
 
     st.divider()
 
@@ -682,13 +664,15 @@ with tab_audit:
 
     if db_photos:
         st.markdown(
-            f"📦 **{len(db_photos)} foto(s) disponibles en la base de datos** "
-            f"para este ítem del local *{local_name}*"
+            f"📦 **{len(db_photos)} foto(s) disponibles**, cargadas desde 📸 Captura de Fotos "
+            f"para el local *{local_name}*"
         )
         photo_cols = st.columns(min(len(db_photos), 4))
         for i, p in enumerate(db_photos):
             with photo_cols[i % len(photo_cols)]:
                 st.image(p["photo_data"], caption=p["photo_name"], use_container_width=True)
+    else:
+        st.info("No hay fotos cargadas todavía para este ítem. Podés subir alguna acá abajo o cargarla desde 📸 Captura de Fotos.")
 
     uploaded_files = st.file_uploader(
         "O subí fotos manualmente",
@@ -703,227 +687,219 @@ with tab_audit:
             with upload_cols[i % len(upload_cols)]:
                 st.image(f, caption=f.name, use_container_width=True)
 
-    has_any_photos = bool(db_photos) or bool(uploaded_files)
+    all_photo_names = [p["photo_name"] for p in db_photos] + [f.name for f in (uploaded_files or [])]
 
-    analyze_btn = st.button(
-        "🔍 Analizar con IA",
-        type="primary",
-        use_container_width=True,
-        disabled=not has_any_photos or not api_key,
+    st.divider()
+
+    # ── Evaluación manual ───────────────────────────────────────────
+    st.subheader("✍️ Evaluación")
+
+    existing_idx = next(
+        (i for i, r in enumerate(st.session_state.results) if r["criterion"]["id"] == criterion_id),
+        None,
     )
 
-    if not api_key:
-        st.info("Ingresá tu OpenAI API Key en el panel izquierdo para empezar.")
+    # Si se aceptó una sugerencia de IA (ver más abajo), precargar los widgets
+    # ANTES de instanciarlos — Streamlit no permite tocar el session_state de
+    # un widget después de haberlo creado en el mismo ciclo de ejecución.
+    _pending_beta = st.session_state.pop(f"_apply_beta_{criterion_id}", None)
+    if _pending_beta:
+        st.session_state[f"eval_status_{criterion_id}"] = _pending_beta.get("status", "Observación")
+        st.session_state[f"eval_nota_{criterion_id}"] = _pending_beta.get("justificacion", "")
 
-    if analyze_btn and has_any_photos and api_key:
-        photos_to_analyze = []
+    statuses_list = ["Conforme", "Observación", "No Conforme"]
+    eval_status = st.radio(
+        "Estado del ítem",
+        statuses_list,
+        horizontal=True,
+        key=f"eval_status_{criterion_id}",
+    )
 
-        if db_photos:
-            for p in db_photos:
-                photos_to_analyze.append({
-                    "data": p["photo_data"],
-                    "name": p["photo_name"],
-                    "source": "db",
-                })
+    nota_needed = eval_status != "Conforme"
+    eval_nota = st.text_area(
+        "Nota — qué se observó" + (" (obligatoria)" if nota_needed else " (opcional)"),
+        key=f"eval_nota_{criterion_id}",
+        placeholder="Ej: Exhibidora fuera de lugar, falta cartel de precios...",
+    )
 
-        if uploaded_files:
-            for f in uploaded_files:
-                photos_to_analyze.append({
-                    "data": f,
-                    "name": f.name,
-                    "source": "upload",
-                })
+    nota_ok = (not nota_needed) or bool(eval_nota.strip())
+    if nota_needed and not nota_ok:
+        st.warning("Agregá una nota breve describiendo el desvío antes de confirmar.")
 
-        past_corrections = []
-        if db.is_connected():
+    _create_desvio_checked = False
+    if nota_needed and db.is_connected():
+        _create_desvio_checked = st.checkbox(
+            f"Crear desvío para {criterion_id} (estado: {eval_status})",
+            value=True,
+            key=f"crear_desvio_{criterion_id}",
+        )
+
+    confirm_col1, confirm_col2 = st.columns([3, 1])
+    with confirm_col1:
+        confirm_clicked = st.button(
+            "✅ Confirmar y siguiente",
+            type="primary",
+            use_container_width=True,
+            disabled=not nota_ok,
+        )
+    with confirm_col2:
+        skip_clicked = st.button("Saltar ítem →", use_container_width=True)
+
+    if confirm_clicked:
+        fecha_now = datetime.now().strftime("%Y-%m")
+        result = {
+            "status": eval_status,
+            "justificacion": eval_nota.strip(),
+            "detalles_observados": [],
+            "recomendaciones": [],
+        }
+        entry = {
+            "criterion": selected_criterion,
+            "result": result,
+            "filename": ", ".join(all_photo_names) if all_photo_names else "sin foto",
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        if existing_idx is not None:
+            st.session_state.results[existing_idx] = entry
+        else:
+            st.session_state.results.append(entry)
+        _save_draft()
+
+        if db.is_connected() and local_name:
             try:
-                past_corrections = db.get_corrections_for_item(criterion_id)
+                db.save_audit_result(
+                    local=local_name,
+                    fecha=fecha_now,
+                    section=selected_criterion["section"],
+                    item_id=selected_criterion["id"],
+                    item_name=selected_criterion["name"],
+                    result=result,
+                    filename=entry["filename"],
+                    model="manual",
+                )
+            except Exception as e:
+                st.warning(f"No se pudo guardar el resultado en MongoDB: {e}")
+
+        # Si se había pedido una sugerencia de IA para este ítem y el criterio
+        # final difiere, se guarda como corrección (útil si en el futuro se
+        # retoma la calibración del modelo).
+        _beta_result_used = st.session_state.get(f"beta_result_{criterion_id}")
+        if _beta_result_used and db.is_connected():
+            ai_status = _beta_result_used.get("status", "Observación")
+            if ai_status != eval_status:
+                try:
+                    db.save_correction(
+                        item_id=selected_criterion["id"],
+                        item_name=selected_criterion["name"],
+                        ai_status=ai_status,
+                        corrected_status=eval_status,
+                        ai_justificacion=_beta_result_used.get("justificacion", ""),
+                        correction_notes=eval_nota.strip(),
+                        local=local_name,
+                        fecha=fecha_now,
+                    )
+                except Exception:
+                    pass
+
+        if _create_desvio_checked and db.is_connected():
+            try:
+                nivel = "rojo" if eval_status == "No Conforme" else "amarillo"
+                prioridad = "alta" if eval_status == "No Conforme" else "media"
+                db.create_desvio(
+                    auditoria_fecha=fecha_now,
+                    local=local_name,
+                    seccion=selected_criterion["section"],
+                    item_codigo=selected_criterion["id"],
+                    item_descripcion=selected_criterion["name"][:120],
+                    nivel=nivel,
+                    ai_justificacion=eval_nota.strip(),
+                    prioridad=prioridad,
+                )
             except Exception:
                 pass
 
-        for photo_info in photos_to_analyze:
-            with st.spinner(f"Analizando {photo_info['name']}..."):
-                try:
-                    if photo_info["source"] == "db":
-                        img_file = io.BytesIO(photo_info["data"])
-                        img_file.name = photo_info["name"]
-                        img_file.type = "image/jpeg"
-                        img_file.getvalue = lambda d=photo_info["data"]: d
-                    else:
-                        img_file = photo_info["data"]
+        if db.is_connected() and local_name:
+            try:
+                db.upsert_auditoria(
+                    local=local_name,
+                    fecha=fecha_now,
+                    tipo=tipo_auditoria,
+                    created_by=st.session_state.get("rol", "operativo"),
+                )
+            except Exception:
+                pass
 
-                    result = analyze_photo(
-                        api_key=api_key,
+        if _advance_to_next_item():
+            st.rerun()
+        else:
+            st.success("Último ítem confirmado. Revisá el Reporte.")
+
+    if skip_clicked:
+        if _advance_to_next_item():
+            st.rerun()
+
+    if existing_idx is not None:
+        _prev = st.session_state.results[existing_idx]
+        st.caption(
+            f"Última evaluación guardada: {STATUS_ICONS.get(_prev['result']['status'], '')} "
+            f"{_prev['result']['status']} — {_prev['timestamp']}"
+        )
+
+    # ── 🧪 Sugerencia con IA (opcional, beta) ────────────────────────
+    with st.expander("🧪 Sugerencia con IA (opcional, beta)", expanded=False):
+        st.caption(
+            "Herramienta experimental y opcional: la IA puede sugerir un estado a partir de "
+            "una foto, pero **vos definís la evaluación final arriba**. Se desactivó como "
+            "paso obligatorio porque tendía a ser repetitiva y poco precisa; se deja disponible "
+            "como segunda opinión."
+        )
+        _default_key = st.secrets.get("OPENAI_API_KEY", "") if hasattr(st, "secrets") else ""
+        beta_api_key = st.text_input(
+            "🔑 OpenAI API Key", value=_default_key, type="password", key="beta_api_key"
+        )
+        beta_model = st.selectbox(
+            "Modelo de IA", ["gpt-4o", "gpt-4o-mini"], key="beta_model"
+        )
+
+        beta_photo = db_photos[0] if db_photos else None
+        beta_upload = uploaded_files[0] if uploaded_files else None
+        suggest_disabled = not beta_api_key or not (beta_photo or beta_upload)
+
+        if st.button("🔍 Pedir sugerencia IA", disabled=suggest_disabled, key=f"beta_suggest_{criterion_id}"):
+            try:
+                if beta_photo:
+                    img_file = io.BytesIO(beta_photo["photo_data"])
+                    img_file.name = beta_photo["photo_name"]
+                    img_file.type = "image/jpeg"
+                    img_file.getvalue = lambda d=beta_photo["photo_data"]: d
+                else:
+                    img_file = beta_upload
+
+                with st.spinner("Consultando IA..."):
+                    ai_result = analyze_photo(
+                        api_key=beta_api_key,
                         image_file=img_file,
                         criterion=selected_criterion,
-                        model=model_choice,
-                        corrections=past_corrections,
+                        model=beta_model,
                     )
+                st.session_state[f"beta_result_{criterion_id}"] = ai_result
+            except Exception as exc:
+                st.error(f"Error al consultar la IA: {exc}")
 
-                    entry = {
-                        "criterion": selected_criterion,
-                        "result": result,
-                        "filename": photo_info["name"],
-                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    }
-                    st.session_state.results.append(entry)
-                    _save_draft()
+        _beta_result = st.session_state.get(f"beta_result_{criterion_id}")
+        if _beta_result:
+            _render_result(_beta_result, selected_criterion, 0)
+            if st.button("Usar esta sugerencia como base", key=f"beta_use_{criterion_id}"):
+                st.session_state[f"_apply_beta_{criterion_id}"] = _beta_result
+                st.rerun()
 
-                    if db.is_connected() and local_name:
-                        try:
-                            db.save_audit_result(
-                                local=local_name,
-                                fecha=datetime.now().strftime("%Y-%m"),
-                                section=selected_criterion["section"],
-                                item_id=selected_criterion["id"],
-                                item_name=selected_criterion["name"],
-                                result=result,
-                                filename=photo_info["name"],
-                                model=model_choice,
-                            )
-                        except Exception as e:
-                            st.warning(f"No se pudo guardar el resultado en MongoDB: {e}")
-
-                    _render_result(result, selected_criterion, len(st.session_state.results))
-
-                except Exception as exc:
-                    st.error(f"Error al analizar {photo_info['name']}: {exc}")
-
-    if st.session_state.results:
-        current_item_results = [
-            (i, entry) for i, entry in enumerate(st.session_state.results)
-            if entry["criterion"]["id"] == criterion_id
-        ]
-        other_results = [
-            (i, entry) for i, entry in enumerate(st.session_state.results)
-            if entry["criterion"]["id"] != criterion_id
-        ]
-
-        if current_item_results:
-            st.divider()
-            st.subheader(f"Resultado: {criterion_id}")
-
-            if len(current_item_results) > 1:
-                all_ai_statuses = [e["result"].get("status", "Observación") for _, e in current_item_results]
-                consolidated = _worst_status(all_ai_statuses)
-                counts = {s: all_ai_statuses.count(s) for s in set(all_ai_statuses)}
-                counts_str = ", ".join(f"{s}: {c}" for s, c in counts.items())
-                icon = STATUS_ICONS.get(consolidated, "")
-                st.info(
-                    f"**{len(current_item_results)} fotos analizadas** ({counts_str}) → "
-                    f"**Status consolidado del ítem: {icon} {consolidated}** "
-                    f"(se aplica el peor status)"
-                )
-
-            statuses_list = ["Conforme", "Observación", "No Conforme"]
-
-            for orig_idx, entry in current_item_results:
-                _render_result(entry["result"], entry["criterion"], orig_idx)
-
-                ai_status = entry["result"].get("status", "Observación")
-                default_idx = statuses_list.index(ai_status) if ai_status in statuses_list else 1
-
-                st.caption("Si la IA se equivocó, ajustá el estado correcto:")
-                col_c1, col_c2 = st.columns(2)
-                with col_c1:
-                    st.selectbox(
-                        "Estado correcto",
-                        statuses_list,
-                        index=default_idx,
-                        key=f"corr_status_{orig_idx}",
-                    )
-                with col_c2:
-                    st.text_input(
-                        "Nota del auditor (opcional)",
-                        placeholder="Ej: Exhibidora fuera de lugar",
-                        key=f"corr_notes_{orig_idx}",
-                    )
-
-            _final_statuses = {}
-            for orig_idx, entry in current_item_results:
-                ai_st = entry["result"].get("status", "Observación")
-                corr_st = st.session_state.get(f"corr_status_{orig_idx}", ai_st)
-                _final_statuses[orig_idx] = corr_st
-
-            _any_non_conforme = any(s != "Conforme" for s in _final_statuses.values())
-            _create_desvio_checked = False
-            if _any_non_conforme and db.is_connected():
-                _worst = "No Conforme" if "No Conforme" in _final_statuses.values() else "Observación"
-                _create_desvio_checked = st.checkbox(
-                    f"Crear desvío para {criterion_id} (estado: {_worst})",
-                    value=True,
-                    key=f"crear_desvio_{criterion_id}",
-                )
-
-            if st.button(
-                "✅ Confirmar y siguiente",
-                type="primary",
-                use_container_width=True,
-            ):
-                fecha_now = datetime.now().strftime("%Y-%m")
-
-                for orig_idx, entry in current_item_results:
-                    ai_status = entry["result"].get("status", "Observación")
-                    corrected = st.session_state.get(f"corr_status_{orig_idx}", ai_status)
-                    notes = st.session_state.get(f"corr_notes_{orig_idx}", "")
-
-                    if (corrected != ai_status or notes) and db.is_connected():
-                        try:
-                            db.save_correction(
-                                item_id=entry["criterion"]["id"],
-                                item_name=entry["criterion"]["name"],
-                                ai_status=ai_status,
-                                corrected_status=corrected,
-                                ai_justificacion=entry["result"].get("justificacion", ""),
-                                correction_notes=notes,
-                                local=local_name,
-                                fecha=fecha_now,
-                            )
-                        except Exception:
-                            pass
-
-                if _create_desvio_checked and db.is_connected():
-                    try:
-                        worst_status = "No Conforme" if "No Conforme" in _final_statuses.values() else "Observación"
-                        nivel = "rojo" if worst_status == "No Conforme" else "amarillo"
-                        prioridad = "alta" if worst_status == "No Conforme" else "media"
-                        justif = current_item_results[0][1]["result"].get("justificacion", "")
-                        db.create_desvio(
-                            auditoria_fecha=fecha_now,
-                            local=local_name,
-                            seccion=selected_criterion["section"],
-                            item_codigo=selected_criterion["id"],
-                            item_descripcion=selected_criterion["name"][:120],
-                            nivel=nivel,
-                            ai_justificacion=justif,
-                            prioridad=prioridad,
-                        )
-                    except Exception:
-                        pass
-
-                if db.is_connected() and local_name:
-                    try:
-                        db.upsert_auditoria(
-                            local=local_name,
-                            fecha=fecha_now,
-                            tipo=tipo_auditoria,
-                            created_by=st.session_state.get("rol", "operativo"),
-                        )
-                    except Exception:
-                        pass
-
-                _save_draft()
-
-                if _advance_to_next_item():
-                    st.rerun()
-                else:
-                    st.success("Último ítem confirmado. Revisá el Reporte.")
-
-        if other_results:
-            st.divider()
-            with st.expander(f"📋 Resultados anteriores ({len(other_results)})", expanded=False):
-                for _, entry in reversed(other_results):
-                    _render_result(entry["result"], entry["criterion"], _)
+    # ── Ítems ya evaluados ────────────────────────────────────────────
+    other_results = [r for r in st.session_state.results if r["criterion"]["id"] != criterion_id]
+    if other_results:
+        st.divider()
+        with st.expander(f"📋 Ítems ya evaluados ({len(other_results)})", expanded=False):
+            for entry in reversed(other_results):
+                _render_result(entry["result"], entry["criterion"], 0)
 
     # ── Navegación wizard inferior ─────────────────────────────────
     st.divider()
@@ -1027,7 +1003,10 @@ with tab_report:
                 "E": "#F5841F",
             }
 
-            _scores_for_chart = st.session_state.get("section_scores", {})
+            _scores_for_chart = db.calculate_section_scores(
+                st.session_state.get("local_name", ""),
+                st.session_state.get("fecha_str", ""),
+            ) or {}
             if _scores_for_chart:
                 _sec_labels = []
                 _sec_values = []
@@ -1157,5 +1136,5 @@ with tab_criteria:
 st.divider()
 st.caption(
     "Grido Audit Vision · Herramienta de autocontrol interno · "
-    "Los resultados del análisis de IA son orientativos y no reemplazan una auditoría formal."
+    "Evaluación manual del responsable operativo — no reemplaza la auditoría oficial de la franquicia."
 )
