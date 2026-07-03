@@ -214,7 +214,19 @@ if not st.session_state.draft_checked:
     st.session_state.draft_checked = True
     draft = _load_draft()
     if draft and draft.get("results") and not st.session_state.results:
-        st.session_state["_pending_draft"] = draft
+        # Si la auditoría de ese local+período ya fue finalizada (acá o desde
+        # 📸 Captura), el borrador quedó huérfano — se descarta solo, sin
+        # ofrecer "continuar" algo que ya está cerrado.
+        _draft_local = draft.get("local_name", "")
+        _draft_fecha = (draft.get("audit_date") or "")[:7]  # "YYYY-MM-DD HH:MM" → "YYYY-MM"
+        _draft_closed = False
+        if db.is_connected() and _draft_local and _draft_fecha:
+            _draft_aud = db.get_auditoria(_draft_local, _draft_fecha)
+            _draft_closed = bool(_draft_aud and _draft_aud.get("finalizada"))
+        if _draft_closed:
+            _delete_draft()
+        else:
+            st.session_state["_pending_draft"] = draft
 
 if "_pending_draft" in st.session_state:
     draft = st.session_state["_pending_draft"]
@@ -567,6 +579,7 @@ with st.sidebar:
                     fecha=fecha_now,
                     tipo=tipo_auditoria,
                     created_by=st.session_state.get("rol", "operativo"),
+                    finalizada=True,
                 )
             except Exception:
                 pass
@@ -588,6 +601,7 @@ with st.sidebar:
                     fecha=fecha_now,
                     tipo="parcial",
                     created_by=st.session_state.get("rol", "operativo"),
+                    finalizada=True,
                 )
             except Exception:
                 pass

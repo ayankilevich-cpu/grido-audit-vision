@@ -9,7 +9,9 @@ Colecciones:
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
 import streamlit as st
@@ -428,26 +430,40 @@ def upsert_auditoria(
     tipo: str,
     created_by: str = "operativo",
     franquiciado_id: str = "grido_default",
+    finalizada: bool | None = None,
 ) -> None:
+    """Actualiza (o crea) el resumen de auditoría de un local+período.
+
+    `finalizada` solo se toca si se pasa explícitamente (True/False) — los
+    guardados incrementales de cada ítem no deben "reabrir" ni "cerrar" la
+    auditoría por accidente, solo la acción explícita de Finalizar lo hace.
+    """
     scores = calculate_section_scores(local, fecha)
     all_pts = [v for v in scores.values() if v is not None]
     score_global = round(sum(all_pts) / len(all_pts)) if all_pts else 0
     results = get_audit_results(local, fecha)
     now = datetime.now(timezone.utc)
+
+    set_fields: dict[str, Any] = {
+        "tipo_auditoria": tipo,
+        "scores": scores,
+        "score_global": score_global,
+        "items_evaluados": len(results),
+        "created_by": created_by,
+        "franquiciado_id": franquiciado_id,
+        "updated_at": now,
+    }
+    on_insert_fields: dict[str, Any] = {"created_at": now}
+    if finalizada is not None:
+        set_fields["finalizada"] = finalizada
+        set_fields["finalizada_at"] = now if finalizada else None
+    else:
+        on_insert_fields["finalizada"] = False
+        on_insert_fields["finalizada_at"] = None
+
     _auditorias_col().update_one(
         {"local": local, "fecha": fecha},
-        {
-            "$set": {
-                "tipo_auditoria": tipo,
-                "scores": scores,
-                "score_global": score_global,
-                "items_evaluados": len(results),
-                "created_by": created_by,
-                "franquiciado_id": franquiciado_id,
-                "updated_at": now,
-            },
-            "$setOnInsert": {"created_at": now},
-        },
+        {"$set": set_fields, "$setOnInsert": on_insert_fields},
         upsert=True,
     )
 
@@ -456,6 +472,23 @@ def get_auditoria(local: str, fecha: str) -> dict[str, Any] | None:
     return _auditorias_col().find_one(
         {"local": local, "fecha": fecha}, {"_id": 0}
     )
+
+
+def delete_audit_results(local: str, fecha: str) -> int:
+    """Elimina TODAS las evaluaciones guardadas de un local+período (irreversible).
+
+    No borra fotos ni desvíos — solo los resultados de evaluación (lo que
+    marca los ítems como Conforme/Observación/No Conforme). Se usa para
+    reiniciar una auditoría desde cero.
+    """
+    result = _results_col().delete_many({"local": local, "fecha": fecha})
+    return result.deleted_count
+
+
+def delete_auditoria(local: str, fecha: str) -> bool:
+    """Elimina el resumen/puntaje de auditoría de un local+período."""
+    result = _auditorias_col().delete_one({"local": local, "fecha": fecha})
+    return result.deleted_count > 0
 
 
 def get_auditorias_list(local: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
@@ -772,3 +805,26 @@ def get_decisiones_pendientes(local: str | None = None) -> list[dict[str, Any]]:
         doc["desvio_id"] = str(doc["desvio_id"])
         results.append(doc)
     return results
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Borrador local de la página Revisar (compartido entre páginas)
+# ══════════════════════════════════════════════════════════════════════════
+
+
+def _draft_dir() -> Path:
+    d = Path(os.path.dirname(os.path.abspath(__file__))) / ".audit_drafts"
+    d.mkdir(exist_ok=True)
+    return d
+
+
+def clear_draft(rol: str) -> None:
+    """Borra el borrador local de la página Revisar para un rol.
+
+    Se usa cuando una auditoría se finaliza o se reinicia desde Captura,
+    para que Revisar no ofrezca "continuar" un borrador que ya quedó
+    huérfano/obsoleto.
+    """
+    path = _draft_dir() / f"draft_{rol}.json"
+    if path.exists():
+        path.unlink()

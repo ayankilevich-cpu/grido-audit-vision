@@ -351,6 +351,31 @@ def _confirm_discard(direction: str):
             st.rerun()
 
 
+@st.dialog("Reiniciar auditoría")
+def _confirm_reset(local: str, fecha: str):
+    """Modal de confirmación para borrar todas las evaluaciones de un local+mes."""
+    st.warning(
+        f"Esto borra **todas las evaluaciones guardadas** de **{local}** para este período "
+        "(los ítems vuelven a quedar sin marcar). Las fotos ya cargadas NO se borran. "
+        "**Esta acción no se puede deshacer.**"
+    )
+    r1, r2 = st.columns(2)
+    with r1:
+        if st.button("Cancelar", use_container_width=True, key="cap_reset_cancel"):
+            st.session_state.pop("_cap_pending_reset", None)
+            st.rerun()
+    with r2:
+        if st.button("Sí, borrar todo", type="primary", use_container_width=True, key="cap_reset_confirm"):
+            db.delete_audit_results(local, fecha)
+            db.delete_auditoria(local, fecha)
+            db.clear_draft(st.session_state.get("rol", "operativo"))
+            _get_eval_map.clear()
+            st.session_state.pop("_cap_pending_reset", None)
+            st.session_state.pop(f"_cap_celebrated_{local}_{fecha}", None)
+            st.toast("🗑️ Auditoría reiniciada — todo sin evaluar de nuevo", icon="🗑️")
+            st.rerun()
+
+
 # ── Header ────────────────────────────────────────────────────────────────
 
 st.markdown("## 📸 Captura y Evaluación")
@@ -388,8 +413,34 @@ with st.expander(_cfg_summary, expanded=False):
             key="cap_tipo_auditoria",
         )
 
+    if use_mongo:
+        st.divider()
+        st.caption("⚠️ Zona de riesgo")
+        if st.button(
+            "🗑️ Reiniciar evaluaciones de este local/mes",
+            use_container_width=True,
+            key="cap_reset_btn",
+            help="Borra todas las evaluaciones guardadas para volver a empezar de cero",
+        ):
+            st.session_state["_cap_pending_reset"] = True
+            st.rerun()
+
 fecha_str = audit_date.strftime("%Y-%m")
 _eval_map = _get_eval_map(local_name, fecha_str)
+
+if st.session_state.get("_cap_pending_reset"):
+    _confirm_reset(local_name, fecha_str)
+
+# ── Auditoría ya finalizada ──────────────────────────────────────────────
+_auditoria_doc = db.get_auditoria(local_name, fecha_str) if use_mongo else None
+_is_finalized = bool(_auditoria_doc and _auditoria_doc.get("finalizada"))
+if _is_finalized:
+    _fin_tipo = (_auditoria_doc or {}).get("tipo_auditoria", "—").replace("_", " ").title()
+    st.warning(
+        f"🔒 La auditoría de **{local_name}** para este período ya fue **finalizada** "
+        f"({_fin_tipo}). Podés seguir evaluando si hace falta corregir algo, o usar "
+        f"**🗑️ Reiniciar** (arriba en ⚙️) para empezar una auditoría nueva de cero."
+    )
 
 # ── Bienvenida (solo al llegar desde otra página) ───────────────────────
 _should_resume = st.session_state.pop("_cap_should_resume", False)
@@ -788,7 +839,11 @@ if selected:
                 fecha=fecha_str,
                 tipo=_final_tipo,
                 created_by=st.session_state.get("rol", "operativo"),
+                finalizada=True,
             )
+            # El borrador local de la página Revisar (si existiera) queda
+            # huérfano apenas se finaliza desde acá.
+            db.clear_draft(st.session_state.get("rol", "operativo"))
             if _final_tipo == "completa":
                 st.toast(
                     f"🏁 Auditoría COMPLETA finalizada — {items_covered}/{total_items} ítems", icon="🏁"
