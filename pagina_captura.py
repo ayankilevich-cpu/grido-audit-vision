@@ -382,6 +382,19 @@ with st.expander(_cfg_summary, expanded=False):
 fecha_str = audit_date.strftime("%Y-%m")
 _eval_map = _get_eval_map(local_name, fecha_str)
 
+# ── Bienvenida (solo al llegar desde otra página) ───────────────────────
+_should_resume = st.session_state.pop("_cap_should_resume", False)
+if _should_resume:
+    _rol_label = "Ivana" if st.session_state.get("rol", "operativo") == "operativo" else "Dirección"
+    _next_pending_greet = next((c for c in CRITERIA if c["id"] not in _eval_map), None)
+    if _next_pending_greet:
+        st.info(
+            f"👋 Hola, {_rol_label} — **{local_name}**: **{len(_eval_map)}/{len(CRITERIA)}** ítems evaluados. "
+            f"Te llevamos directo a **{_next_pending_greet['id']} — {_next_pending_greet['name'][:45]}**."
+        )
+    else:
+        st.success(f"🎉 ¡Auditoría completa en **{local_name}**! Evaluaste los {len(CRITERIA)} ítems.")
+
 with st.sidebar:
     st.markdown("### 📖 Instrucciones")
     st.markdown(
@@ -456,7 +469,7 @@ _nav_item_id = st.session_state.pop("_cap_nav_item", None)
 
 # Al entrar a esta página desde otra (barra inferior), saltar directo al
 # próximo ítem sin evaluar en vez de quedarse en uno ya evaluado.
-_should_resume = st.session_state.pop("_cap_should_resume", False)
+# (_should_resume ya se consumió arriba, para el mensaje de bienvenida.)
 if _should_resume and _nav_sec is None:
     _next_pending = next((c for c in CRITERIA if c["id"] not in _eval_map), None)
     if _next_pending:
@@ -605,19 +618,44 @@ if selected:
                                 caption=photo["photo_name"],
                                 use_container_width=True,
                             )
-                            if st.button(
-                                "🗑️",
-                                key=f"cdel_{item_id}_{idx}",
-                                help="Borrar esta foto",
-                            ):
-                                if use_mongo:
-                                    db.delete_photo(str(photo["_id"]))
-                                    _get_counts.clear()
-                                else:
-                                    st.session_state.cap_photos[item_id].pop(idx)
-                                    if not st.session_state.cap_photos[item_id]:
-                                        del st.session_state.cap_photos[item_id]
-                                st.rerun()
+                            _del_confirm_key = f"_cap_confirm_del_{item_id}_{idx}"
+                            if st.session_state.get(_del_confirm_key):
+                                st.warning("¿Borrar esta foto?")
+                                dcol1, dcol2 = st.columns(2)
+                                with dcol1:
+                                    if st.button(
+                                        "Sí, borrar",
+                                        key=f"cdel_yes_{item_id}_{idx}",
+                                        type="primary",
+                                        use_container_width=True,
+                                    ):
+                                        if use_mongo:
+                                            db.delete_photo(str(photo["_id"]))
+                                            _get_counts.clear()
+                                        else:
+                                            st.session_state.cap_photos[item_id].pop(idx)
+                                            if not st.session_state.cap_photos[item_id]:
+                                                del st.session_state.cap_photos[item_id]
+                                        st.session_state.pop(_del_confirm_key, None)
+                                        st.toast("🗑️ Foto borrada")
+                                        st.rerun()
+                                with dcol2:
+                                    if st.button(
+                                        "Cancelar",
+                                        key=f"cdel_no_{item_id}_{idx}",
+                                        use_container_width=True,
+                                    ):
+                                        st.session_state.pop(_del_confirm_key, None)
+                                        st.rerun()
+                            else:
+                                if st.button(
+                                    "🗑️ Borrar",
+                                    key=f"cdel_{item_id}_{idx}",
+                                    help="Borrar esta foto",
+                                    use_container_width=True,
+                                ):
+                                    st.session_state[_del_confirm_key] = True
+                                    st.rerun()
 
     # ── 3. Evaluación ────────────────────────────────────────────────────
     st.markdown("### ✍️ Evaluación")
@@ -718,7 +756,10 @@ if selected:
             st.error(f"No se pudo guardar la foto: {e}")
 
         if ok:
-            st.success(f"✅ Guardado {item_id}" + (" con foto" if saved_photo else ""))
+            st.toast(
+                "✅ Evaluación guardada" + (" con foto" if saved_photo else ""),
+                icon="✅",
+            )
             if saved_photo:
                 st.session_state["_cap_photo_round"] += 1
             _cap_advance()
@@ -732,7 +773,32 @@ st.markdown("### ✅ Finalizar")
 tp = _total_photos(local_name, fecha_str)
 missing = [c for c in CRITERIA if c["id"] not in _eval_map]
 
-if items_covered > 0:
+if items_covered >= total_items and total_items > 0:
+    # ── Pantalla de cierre ──────────────────────────────────────────────
+    _status_counts = {"Conforme": 0, "Observación": 0, "No Conforme": 0}
+    for r in _eval_map.values():
+        s = r.get("status", "Conforme")
+        if s in _status_counts:
+            _status_counts[s] += 1
+    _pct_conforme = round(_status_counts["Conforme"] / total_items * 100) if total_items else 0
+    _n_desvios = _status_counts["Observación"] + _status_counts["No Conforme"]
+
+    _celebrate_key = f"_cap_celebrated_{local_name}_{fecha_str}"
+    if not st.session_state.get(_celebrate_key):
+        st.balloons()
+        st.session_state[_celebrate_key] = True
+
+    st.success(f"🎉 ¡Auditoría completa en **{local_name}**! Evaluaste los {total_items} ítems.")
+    ccol1, ccol2, ccol3 = st.columns(3)
+    ccol1.metric("✅ Conforme", _status_counts["Conforme"])
+    ccol2.metric("⚠️ Observación", _status_counts["Observación"])
+    ccol3.metric("❌ No Conforme", _status_counts["No Conforme"])
+    st.caption(
+        f"**{_pct_conforme}%** de conformidad global · **{tp}** fotos cargadas · "
+        f"Los **{_n_desvios}** desvíos detectados quedaron cargados en 📊 Planes de Mejora."
+    )
+
+elif items_covered > 0:
     st.markdown(
         f"**{items_covered} de {total_items}** ítems evaluados "
         f"({tp} fotos, {_total_size_str(local_name, fecha_str)})"
