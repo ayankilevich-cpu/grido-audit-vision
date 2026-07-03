@@ -4,19 +4,19 @@ Sistema de auditoría interna para franquicias Grido con herramientas integradas
 
 | Página | Función | Usuario |
 |--------|---------|---------|
-| 📸 **Captura de Fotos** | Sacar/subir fotos organizadas por sección e ítem | Colaborador |
-| 🔍 **Auditoría** | Evaluar manualmente cada ítem (Conforme/Observación/No Conforme) y generar reportes | Dueño/Encargado |
+| 📸 **Captura y Evaluación** | Sacar/subir foto y marcar Conforme/Observación/No Conforme del ítem, en un solo paso | Colaborador (Ivana) |
+| 🔍 **Auditoría** | Revisar/corregir evaluaciones ya hechas, generar reportes, sugerencia de IA opcional | Dueño/Encargado |
 | 📊 **Planes de Mejora** | Gestión de desvíos, plan semanal y panel ejecutivo | Dueño/Dirección |
 | 📈 **Historial** | Tendencias, ítems recurrentes y comparativa por local | Dueño/Dirección |
 
 ## Funcionalidades
 
-- **Captura guiada**: selección de sección → ítem → foto desde cámara o galería
+- **Captura + evaluación en un solo paso**: por cada ítem, sacás o subís la foto y marcás Conforme/Observación/No Conforme (con nota si corresponde) en la misma pantalla; un solo click guarda ambas cosas y navega al ítem siguiente.
 - **Compresión automática**: ~90% de ahorro de espacio sin perder calidad de auditoría
 - **Progreso en tiempo real**: visualización de ítems cubiertos y pendientes
-- **Evaluación manual**: el auditor marca Conforme/Observación/No Conforme por ítem, apoyándose en la rúbrica de criterios ya redactada. La foto queda como evidencia, no como fuente de la decisión.
-- **Sugerencia de IA (opcional, beta)**: en la página de Auditoría hay un panel colapsado para pedir una segunda opinión de GPT-4 Vision, pero nunca decide automáticamente — quedó desactivada como paso obligatorio porque resultaba repetitiva y poco precisa.
-- **Gestión de desvíos**: cada ítem no conforme puede generar un desvío con responsable, fecha límite y detección de reincidencia.
+- **Evaluación manual**: el auditor decide el estado apoyándose en la rúbrica de criterios ya redactada. La foto queda como evidencia, no como fuente de la decisión.
+- **Página de Auditoría**: sigue disponible para revisar o corregir evaluaciones ya hechas (por ejemplo desde una computadora), ver el reporte consolidado, y pedir una sugerencia de IA opcional (beta) — nunca decide automáticamente.
+- **Gestión de desvíos**: cada ítem no conforme genera un desvío con responsable, fecha límite y detección de reincidencia.
 - **Reportes**: exportación en Excel/CSV con métricas por sección
 - **61 ítems** de auditoría organizados en 5 secciones (A–E)
 

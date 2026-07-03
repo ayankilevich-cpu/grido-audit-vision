@@ -15,55 +15,53 @@ st.set_page_config(
 )
 
 # ── CSS: barra de navegación inferior fija ──────────────────────────────
+# Nota: la barra usa botones reales de Streamlit + st.switch_page (no <a href>
+# con navegación de navegador), porque los links crudos abrían una pestaña
+# nueva en vez de moverse dentro de la misma app (sobre todo en tablets).
 st.markdown(
     """
 <style>
 /* Padding para que el contenido no quede tapado por la barra */
 .block-container {
-    padding-bottom: 80px !important;
+    padding-bottom: 90px !important;
 }
 
 /* Barra inferior fija */
-.nav-bottom {
+.st-key-bottom_nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 9999;
     background: #0033CC;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    height: 64px;
     border-top: 2px solid #E63329;
     box-shadow: 0 -2px 12px rgba(0,51,204,0.35);
+    padding: 6px 8px 2px 8px;
 }
 
-/* Links dentro de la barra */
-.nav-bottom a {
-    color: rgba(255,255,255,0.75) !important;
-    text-decoration: none !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 0.7rem;
-    font-weight: 600;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: all 0.2s;
-    min-width: 64px;
-    text-align: center;
+.st-key-bottom_nav div[data-testid="stHorizontalBlock"] {
+    gap: 4px;
 }
 
-.nav-bottom a:hover {
+/* Botones dentro de la barra, con look de link */
+.st-key-bottom_nav .stButton > button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: rgba(255,255,255,0.8) !important;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    white-space: pre-line !important;
+    border-radius: 8px !important;
+    padding: 6px 4px !important;
+    min-height: 44px !important;
+}
+
+.st-key-bottom_nav .stButton > button:hover {
     color: white !important;
-    background: rgba(230, 51, 41, 0.25);
-}
-
-.nav-bottom a .nav-icon {
-    font-size: 1.3rem;
-    line-height: 1;
-    margin-bottom: 2px;
+    background: rgba(230, 51, 41, 0.25) !important;
+    border: none !important;
 }
 </style>
 """,
@@ -71,25 +69,20 @@ st.markdown(
 )
 
 # ── Barra de navegación inferior ────────────────────────────────────────
-st.markdown(
-    """
-<div class="nav-bottom">
-  <a href="/pagina_captura">
-    <span class="nav-icon">📸</span>Captura
-  </a>
-  <a href="/pagina_auditoria">
-    <span class="nav-icon">🔍</span>Auditar
-  </a>
-  <a href="/pagina_mejoras">
-    <span class="nav-icon">📊</span>Mejoras
-  </a>
-  <a href="/pagina_historial">
-    <span class="nav-icon">📈</span>Historial
-  </a>
-</div>
-""",
-    unsafe_allow_html=True,
-)
+with st.container(key="bottom_nav"):
+    _nav_c1, _nav_c2, _nav_c3, _nav_c4 = st.columns(4)
+    with _nav_c1:
+        if st.button("📸\nCaptura", key="nav_btn_captura", use_container_width=True):
+            st.switch_page("pagina_captura.py")
+    with _nav_c2:
+        if st.button("🔍\nAuditar", key="nav_btn_auditar", use_container_width=True):
+            st.switch_page("pagina_auditoria.py")
+    with _nav_c3:
+        if st.button("📊\nMejoras", key="nav_btn_mejoras", use_container_width=True):
+            st.switch_page("pagina_mejoras.py")
+    with _nav_c4:
+        if st.button("📈\nHistorial", key="nav_btn_historial", use_container_width=True):
+            st.switch_page("pagina_historial.py")
 
 if "rol" not in st.session_state:
     st.session_state["rol"] = "operativo"
