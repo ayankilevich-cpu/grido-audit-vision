@@ -34,11 +34,11 @@ _TABLET_CSS = """
 <style>
 /* Touch targets generales */
 .stButton > button {
-    min-height: 48px !important;
+    min-height: 50px !important;
     font-size: 1rem !important;
 }
 div[data-testid="stSelectbox"] > div > div {
-    min-height: 48px !important;
+    min-height: 50px !important;
     font-size: 1rem !important;
 }
 .stTabs [data-baseweb="tab"] {
@@ -60,6 +60,39 @@ div[data-testid="stExpander"] summary {
 }
 /* Espaciado del contenedor */
 .block-container { padding-top: 1.5rem !important; }
+
+/* Tarjetas grandes de estado — mismo lenguaje visual que 📸 Captura */
+div[class*="st-key-aud_btn_conforme_"] button {
+    background: #2ecc71 !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 700 !important;
+    min-height: 58px !important;
+    border-radius: 10px !important;
+}
+div[class*="st-key-aud_btn_observacion_"] button {
+    background: #f39c12 !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 700 !important;
+    min-height: 58px !important;
+    border-radius: 10px !important;
+}
+div[class*="st-key-aud_btn_noconforme_"] button {
+    background: #e74c3c !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 700 !important;
+    min-height: 58px !important;
+    border-radius: 10px !important;
+}
+div[class*="_unsel"] button {
+    opacity: 0.42 !important;
+}
+div[class*="_sel"] button {
+    opacity: 1 !important;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.35) inset !important;
+}
 </style>
 """
 st.markdown(_TABLET_CSS, unsafe_allow_html=True)
@@ -707,13 +740,34 @@ with tab_audit:
         st.session_state[f"eval_status_{criterion_id}"] = _pending_beta.get("status", "Observación")
         st.session_state[f"eval_nota_{criterion_id}"] = _pending_beta.get("justificacion", "")
 
-    statuses_list = ["Conforme", "Observación", "No Conforme"]
-    eval_status = st.radio(
-        "Estado del ítem",
-        statuses_list,
-        horizontal=True,
-        key=f"eval_status_{criterion_id}",
-    )
+    _status_key = f"eval_status_{criterion_id}"
+    if _status_key not in st.session_state:
+        st.session_state[_status_key] = "Conforme"
+    eval_status = st.session_state[_status_key]
+
+    def _sel(status: str) -> str:
+        return "sel" if status == eval_status else "unsel"
+
+    st.caption("Estado del ítem")
+    bcol1, bcol2, bcol3 = st.columns(3)
+    with bcol1:
+        if st.button(
+            "✅ Conforme", use_container_width=True, key=f"aud_btn_conforme_{criterion_id}_{_sel('Conforme')}"
+        ):
+            st.session_state[_status_key] = "Conforme"
+            st.rerun()
+    with bcol2:
+        if st.button(
+            "⚠️ Observación", use_container_width=True, key=f"aud_btn_observacion_{criterion_id}_{_sel('Observación')}"
+        ):
+            st.session_state[_status_key] = "Observación"
+            st.rerun()
+    with bcol3:
+        if st.button(
+            "❌ No conforme", use_container_width=True, key=f"aud_btn_noconforme_{criterion_id}_{_sel('No Conforme')}"
+        ):
+            st.session_state[_status_key] = "No Conforme"
+            st.rerun()
 
     nota_needed = eval_status != "Conforme"
     eval_nota = st.text_area(
@@ -1003,10 +1057,13 @@ with tab_report:
                 "E": "#F5841F",
             }
 
-            _scores_for_chart = db.calculate_section_scores(
-                st.session_state.get("local_name", ""),
-                st.session_state.get("fecha_str", ""),
-            ) or {}
+            if report_source == "db" and db_report_results:
+                _chart_local = sel_h["local"]
+                _chart_fecha = sel_h["fecha"]
+            else:
+                _chart_local = st.session_state.get("local_name", "")
+                _chart_fecha = datetime.now().strftime("%Y-%m")
+            _scores_for_chart = db.calculate_section_scores(_chart_local, _chart_fecha) or {}
             if _scores_for_chart:
                 _sec_labels = []
                 _sec_values = []

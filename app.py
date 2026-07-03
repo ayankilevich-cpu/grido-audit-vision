@@ -101,7 +101,7 @@ with st.container(key="bottom_nav"):
         if st.button("📸\nCaptura", key="nav_btn_captura", use_container_width=True):
             st.switch_page("pagina_captura.py")
     with _nav_c2:
-        if st.button("🔍\nAuditar", key="nav_btn_auditar", use_container_width=True):
+        if st.button("🔍\nRevisar", key="nav_btn_auditar", use_container_width=True):
             st.switch_page("pagina_auditoria.py")
     with _nav_c3:
         if st.button("📊\nMejoras", key="nav_btn_mejoras", use_container_width=True):

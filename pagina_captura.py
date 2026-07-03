@@ -51,26 +51,26 @@ SECTION_SHORT = {
 st.markdown(
     """
 <style>
-/* Touch targets — mínimo 44px para tablet */
+/* Touch targets — pensados para dedo en tablet, no para mouse */
 .stButton>button {
-    min-height: 48px !important;
-    font-size: 1rem !important;
+    min-height: 52px !important;
+    font-size: 1.05rem !important;
 }
 div[data-testid="stSelectbox"] > div > div {
-    min-height: 48px !important;
-    font-size: 1rem !important;
+    min-height: 52px !important;
+    font-size: 1.05rem !important;
 }
-.stTabs [data-baseweb="tab"] {
-    min-height: 48px !important;
-    font-size: 0.95rem !important;
-    padding: 0 20px !important;
+div[data-testid="stTextArea"] textarea {
+    font-size: 1.05rem !important;
+    min-height: 90px !important;
 }
 div[data-testid="stFileUploader"] label {
     min-height: 48px !important;
+    font-size: 1rem !important;
 }
 div[data-testid="stExpander"] summary {
-    min-height: 48px !important;
-    font-size: 0.95rem !important;
+    min-height: 50px !important;
+    font-size: 1rem !important;
 }
 /* Métricas de progreso */
 div[data-testid="stMetric"] {
@@ -80,10 +80,16 @@ div[data-testid="stMetric"] {
     text-align: center;
     box-shadow: 0 1px 3px rgba(0,0,0,.08);
 }
-div[data-testid="stMetric"] label { font-size: .75rem !important; }
-div[data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 1.1rem !important; }
+div[data-testid="stMetric"] label { font-size: .8rem !important; }
+div[data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 1.15rem !important; }
 /* Más espaciado entre elementos en tablet */
 .block-container { padding-top: 1.5rem !important; }
+
+/* Tarjetas que agrupan cada bloque de la pantalla (en vez de líneas finas) */
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
 
 /* Tarjetas grandes de estado (Conforme / Observación / No Conforme) */
 div[class*="st-key-cap_btn_conforme_"] button {
@@ -91,7 +97,8 @@ div[class*="st-key-cap_btn_conforme_"] button {
     color: white !important;
     border: none !important;
     font-weight: 700 !important;
-    min-height: 56px !important;
+    font-size: 1.05rem !important;
+    min-height: 60px !important;
     border-radius: 10px !important;
 }
 div[class*="st-key-cap_btn_observacion_"] button {
@@ -99,7 +106,8 @@ div[class*="st-key-cap_btn_observacion_"] button {
     color: white !important;
     border: none !important;
     font-weight: 700 !important;
-    min-height: 56px !important;
+    font-size: 1.05rem !important;
+    min-height: 60px !important;
     border-radius: 10px !important;
 }
 div[class*="st-key-cap_btn_noconforme_"] button {
@@ -107,7 +115,8 @@ div[class*="st-key-cap_btn_noconforme_"] button {
     color: white !important;
     border: none !important;
     font-weight: 700 !important;
-    min-height: 56px !important;
+    font-size: 1.05rem !important;
+    min-height: 60px !important;
     border-radius: 10px !important;
 }
 div[class*="_unsel"] button {
@@ -413,335 +422,318 @@ with st.sidebar:
 
 # ── Progreso ──────────────────────────────────────────────────────────────
 
-st.divider()
-st.markdown("### 📊 Progreso")
-
 total_items = len(CRITERIA)
 items_covered = sum(1 for c in CRITERIA if c["id"] in _eval_map)
 
-st.progress(
-    items_covered / total_items if total_items else 0,
-    text=f"**{items_covered} / {total_items}** ítems evaluados",
-)
+with st.container(border=True):
+    st.markdown("### 📊 Progreso")
+    st.progress(
+        items_covered / total_items if total_items else 0,
+        text=f"**{items_covered} / {total_items}** ítems evaluados",
+    )
 
-metric_cols = st.columns(5)
-for i, (sec_key, short_name) in enumerate(SECTION_SHORT.items()):
-    sec_items = get_criteria_by_section(sec_key)
-    done = sum(1 for c in sec_items if c["id"] in _eval_map)
-    with metric_cols[i]:
-        st.metric(short_name, f"{done}/{len(sec_items)}")
+    metric_cols = st.columns(5)
+    for i, (sec_key, short_name) in enumerate(SECTION_SHORT.items()):
+        sec_items = get_criteria_by_section(sec_key)
+        done = sum(1 for c in sec_items if c["id"] in _eval_map)
+        with metric_cols[i]:
+            st.metric(short_name, f"{done}/{len(sec_items)}")
 
 # ── Captura ───────────────────────────────────────────────────────────────
 
-st.divider()
-
 # ── 1. Sacá la foto (primero, antes de elegir el ítem) ─────────────────────
-st.markdown("### 📷 Sacá la foto")
-st.caption("Sacá o subí la foto primero; abajo elegís a qué ítem corresponde.")
-
 if "_cap_photo_round" not in st.session_state:
     st.session_state["_cap_photo_round"] = 0
 _round = st.session_state["_cap_photo_round"]
 
-_cam_col, _gal_col = st.columns(2)
-with _cam_col:
-    camera_photo = st.camera_input("Cámara", key=f"ccam_{_round}")
-with _gal_col:
-    uploaded = st.file_uploader(
-        "O subí desde galería",
-        type=["jpg", "jpeg", "png", "webp"],
-        accept_multiple_files=True,
-        key=f"cupload_{_round}",
-    )
+with st.container(border=True):
+    st.markdown("### 📷 Sacá la foto")
+    st.caption("Sacá o subí la foto primero; abajo elegís a qué ítem corresponde.")
 
-if camera_photo or uploaded:
-    st.success("📸 Foto lista. Elegí abajo a qué ítem corresponde y guardá.")
+    _cam_col, _gal_col = st.columns(2)
+    with _cam_col:
+        camera_photo = st.camera_input("Cámara", key=f"ccam_{_round}")
+    with _gal_col:
+        uploaded = st.file_uploader(
+            "O subí desde galería",
+            type=["jpg", "jpeg", "png", "webp"],
+            accept_multiple_files=True,
+            key=f"cupload_{_round}",
+        )
 
-st.divider()
+    if camera_photo or uploaded:
+        st.success("📸 Foto lista. Elegí abajo a qué ítem corresponde y guardá.")
 
 # ── 2. ¿A qué ítem corresponde? ─────────────────────────────────────────────
-st.markdown("### 🏷️ ¿A qué ítem corresponde?")
+with st.container(border=True):
+    st.markdown("### 🏷️ ¿A qué ítem corresponde?")
 
-# Navegación pendiente (ver botones ← / → más abajo) — debe aplicarse ANTES
-# de instanciar los selectbox de sección/ítem.
-_nav_sec = st.session_state.pop("_cap_nav_section", None)
-_nav_item_id = st.session_state.pop("_cap_nav_item", None)
+    # Navegación pendiente (ver botones ← / → más abajo) — debe aplicarse ANTES
+    # de instanciar los selectbox de sección/ítem.
+    _nav_sec = st.session_state.pop("_cap_nav_section", None)
+    _nav_item_id = st.session_state.pop("_cap_nav_item", None)
 
-# Al entrar a esta página desde otra (barra inferior), saltar directo al
-# próximo ítem sin evaluar en vez de quedarse en uno ya evaluado.
-# (_should_resume ya se consumió arriba, para el mensaje de bienvenida.)
-if _should_resume and _nav_sec is None:
-    _next_pending = next((c for c in CRITERIA if c["id"] not in _eval_map), None)
-    if _next_pending:
-        _nav_sec = _next_pending["section"]
-        _nav_item_id = _next_pending["id"]
+    # Al entrar a esta página desde otra (barra inferior), saltar directo al
+    # próximo ítem sin evaluar en vez de quedarse en uno ya evaluado.
+    # (_should_resume ya se consumió arriba, para el mensaje de bienvenida.)
+    if _should_resume and _nav_sec is None:
+        _next_pending = next((c for c in CRITERIA if c["id"] not in _eval_map), None)
+        if _next_pending:
+            _nav_sec = _next_pending["section"]
+            _nav_item_id = _next_pending["id"]
 
-if _nav_sec is not None:
-    st.session_state.pop("cap_section", None)
-    st.session_state.pop("cap_item", None)
+    if _nav_sec is not None:
+        st.session_state.pop("cap_section", None)
+        st.session_state.pop("cap_item", None)
 
-_section_keys = list(SECTIONS.keys())
-if _nav_sec in _section_keys:
-    _sec_default = _section_keys.index(_nav_sec)
-elif st.session_state.get("cap_section") in _section_keys:
-    # No hay navegación pendiente: mantener la sección donde estaba, en vez
-    # de volver siempre a la primera (A).
-    _sec_default = _section_keys.index(st.session_state["cap_section"])
-else:
-    _sec_default = 0
-section = st.selectbox(
-    "Sección",
-    _section_keys,
-    index=_sec_default,
-    format_func=lambda x: f"{x}. {SECTION_SHORT[x]}",
-    key="cap_section",
-)
-
-section_items = get_criteria_by_section(section)
-
-
-def _item_label(item: dict) -> str:
-    iid = item["id"]
-    name = item["name"]
-    if len(name) > 45:
-        name = name[:42] + "..."
-    ev = _eval_map.get(iid)
-    if ev:
-        icon = STATUS_ICONS.get(ev.get("status", ""), "✅")
-    elif iid in NO_PHOTO_ITEMS:
-        icon = "⏭️"
+    _section_keys = list(SECTIONS.keys())
+    if _nav_sec in _section_keys:
+        _sec_default = _section_keys.index(_nav_sec)
+    elif st.session_state.get("cap_section") in _section_keys:
+        # No hay navegación pendiente: mantener la sección donde estaba, en vez
+        # de volver siempre a la primera (A).
+        _sec_default = _section_keys.index(st.session_state["cap_section"])
     else:
-        icon = "⬜"
-    return f"{icon} {iid} — {name}"
+        _sec_default = 0
+    section = st.selectbox(
+        "Sección",
+        _section_keys,
+        index=_sec_default,
+        format_func=lambda x: f"{x}. {SECTION_SHORT[x]}",
+        key="cap_section",
+    )
 
+    section_items = get_criteria_by_section(section)
 
-_item_ids = [c["id"] for c in section_items]
-_prev_selected_item = st.session_state.get("cap_item")
-if _nav_item_id in _item_ids:
-    _item_default = _item_ids.index(_nav_item_id)
-elif isinstance(_prev_selected_item, dict) and _prev_selected_item.get("id") in _item_ids:
-    _item_default = _item_ids.index(_prev_selected_item["id"])
-else:
-    _item_default = 0
-selected = st.selectbox(
-    "Ítem", section_items, index=_item_default, format_func=_item_label, key="cap_item"
-)
+    def _item_label(item: dict) -> str:
+        iid = item["id"]
+        name = item["name"]
+        if len(name) > 45:
+            name = name[:42] + "..."
+        ev = _eval_map.get(iid)
+        if ev:
+            icon = STATUS_ICONS.get(ev.get("status", ""), "✅")
+        elif iid in NO_PHOTO_ITEMS:
+            icon = "⏭️"
+        else:
+            icon = "⬜"
+        return f"{icon} {iid} — {name}"
 
-_all_ids = [c["id"] for c in CRITERIA]
-_cur_idx = _all_ids.index(selected["id"]) if selected and selected["id"] in _all_ids else 0
-st.caption(f"Ítem {_cur_idx + 1} de {len(_all_ids)} (recorrido completo)")
+    _item_ids = [c["id"] for c in section_items]
+    _prev_selected_item = st.session_state.get("cap_item")
+    if _nav_item_id in _item_ids:
+        _item_default = _item_ids.index(_nav_item_id)
+    elif isinstance(_prev_selected_item, dict) and _prev_selected_item.get("id") in _item_ids:
+        _item_default = _item_ids.index(_prev_selected_item["id"])
+    else:
+        _item_default = 0
+    selected = st.selectbox(
+        "Ítem", section_items, index=_item_default, format_func=_item_label, key="cap_item"
+    )
 
-# ¿Hay una evaluación editada en pantalla que todavía no se guardó?
-_saved_for_cur = _eval_map.get(selected["id"]) if selected else None
-_cur_status_val = st.session_state.get(f"cap_eval_status_{selected['id']}") if selected else None
-_cur_nota_val = st.session_state.get(f"cap_eval_nota_{selected['id']}", "") if selected else ""
-_has_unsaved = False
-if _cur_status_val is not None:
-    _saved_status_val = _saved_for_cur.get("status", "Conforme") if _saved_for_cur else "Conforme"
-    _saved_nota_val = _saved_for_cur.get("justificacion", "") if _saved_for_cur else ""
-    _has_unsaved = (_cur_status_val != _saved_status_val) or (_cur_nota_val.strip() != _saved_nota_val.strip())
+    _all_ids = [c["id"] for c in CRITERIA]
+    _cur_idx = _all_ids.index(selected["id"]) if selected and selected["id"] in _all_ids else 0
+    st.caption(f"Ítem {_cur_idx + 1} de {len(_all_ids)} (recorrido completo)")
 
-_nav_c1, _nav_c2 = st.columns(2)
-with _nav_c1:
-    if st.button("← Ítem anterior", use_container_width=True, disabled=_cur_idx == 0, key="cap_btn_prev"):
-        if _has_unsaved:
-            st.session_state["_cap_pending_nav"] = "prev"
-            st.rerun()
-        elif _cap_retreat():
-            st.rerun()
-with _nav_c2:
-    if st.button(
-        "Ítem siguiente →",
-        use_container_width=True,
-        disabled=_cur_idx == len(_all_ids) - 1,
-        key="cap_btn_next",
-        type="primary",
-    ):
-        if _has_unsaved:
-            st.session_state["_cap_pending_nav"] = "next"
-            st.rerun()
-        elif _cap_advance():
-            st.rerun()
+    # ¿Hay una evaluación editada en pantalla que todavía no se guardó?
+    _saved_for_cur = _eval_map.get(selected["id"]) if selected else None
+    _cur_status_val = st.session_state.get(f"cap_eval_status_{selected['id']}") if selected else None
+    _cur_nota_val = st.session_state.get(f"cap_eval_nota_{selected['id']}", "") if selected else ""
+    _has_unsaved = False
+    if _cur_status_val is not None:
+        _saved_status_val = _saved_for_cur.get("status", "Conforme") if _saved_for_cur else "Conforme"
+        _saved_nota_val = _saved_for_cur.get("justificacion", "") if _saved_for_cur else ""
+        _has_unsaved = (_cur_status_val != _saved_status_val) or (_cur_nota_val.strip() != _saved_nota_val.strip())
 
-_pending_nav = st.session_state.get("_cap_pending_nav")
-if _pending_nav:
-    _confirm_discard(_pending_nav)
+    _nav_c1, _nav_c2 = st.columns(2)
+    with _nav_c1:
+        if st.button("← Ítem anterior", use_container_width=True, disabled=_cur_idx == 0, key="cap_btn_prev"):
+            if _has_unsaved:
+                st.session_state["_cap_pending_nav"] = "prev"
+                st.rerun()
+            elif _cap_retreat():
+                st.rerun()
+    with _nav_c2:
+        if st.button(
+            "Ítem siguiente →",
+            use_container_width=True,
+            disabled=_cur_idx == len(_all_ids) - 1,
+            key="cap_btn_next",
+            type="primary",
+        ):
+            if _has_unsaved:
+                st.session_state["_cap_pending_nav"] = "next"
+                st.rerun()
+            elif _cap_advance():
+                st.rerun()
+
+    _pending_nav = st.session_state.get("_cap_pending_nav")
+    if _pending_nav:
+        _confirm_discard(_pending_nav)
 
 if selected:
     item_id = selected["id"]
 
-    with st.expander("ℹ️ Qué evalúa este ítem", expanded=False):
-        st.markdown(f"**{selected['name']}**")
-        if selected.get("conforme"):
-            st.markdown(f"✅ **Conforme:** {selected['conforme']}")
-        if selected.get("observacion"):
-            st.markdown(f"⚠️ **Observación:** {selected['observacion']}")
-        if selected.get("no_conforme"):
-            st.markdown(f"❌ **No conforme:** {selected['no_conforme']}")
+    with st.container(border=True):
+        with st.expander("ℹ️ Qué evalúa este ítem", expanded=False):
+            st.markdown(f"**{selected['name']}**")
+            if selected.get("conforme"):
+                st.markdown(f"✅ **Conforme:** {selected['conforme']}")
+            if selected.get("observacion"):
+                st.markdown(f"⚠️ **Observación:** {selected['observacion']}")
+            if selected.get("no_conforme"):
+                st.markdown(f"❌ **No conforme:** {selected['no_conforme']}")
 
-    if item_id in NO_PHOTO_ITEMS:
-        st.caption("ℹ️ Ítem oral/presencial — no requiere foto.")
+        if item_id in NO_PHOTO_ITEMS:
+            st.caption("ℹ️ Ítem oral/presencial — no requiere foto.")
 
-    # ── Fotos ya cargadas para este ítem (evidencia previa) ────────────
-    if item_id not in NO_PHOTO_ITEMS:
-        if use_mongo:
-            item_photos = db.get_photos_for_item(local_name, fecha_str, item_id)
-        else:
-            item_photos_raw = st.session_state.cap_photos.get(item_id, [])
-            item_photos = [
-                {"_id": str(i), "photo_data": p["data"], "photo_name": p["name"]}
-                for i, p in enumerate(item_photos_raw)
-            ]
+        # ── Fotos ya cargadas para este ítem (evidencia previa) ────────────
+        if item_id not in NO_PHOTO_ITEMS:
+            if use_mongo:
+                item_photos = db.get_photos_for_item(local_name, fecha_str, item_id)
+            else:
+                item_photos_raw = st.session_state.cap_photos.get(item_id, [])
+                item_photos = [
+                    {"_id": str(i), "photo_data": p["data"], "photo_name": p["name"]}
+                    for i, p in enumerate(item_photos_raw)
+                ]
 
-        _n_photos = len(item_photos)
-        if _n_photos:
-            _preview_n = min(_n_photos, 5)
-            _preview_cols = st.columns(_preview_n + (1 if _n_photos > 5 else 0))
-            for i in range(_preview_n):
-                with _preview_cols[i]:
-                    st.image(item_photos[i]["photo_data"], width=48)
-            if _n_photos > 5:
-                with _preview_cols[5]:
-                    st.caption(f"+{_n_photos - 5}")
+            _n_photos = len(item_photos)
+            if _n_photos:
+                _preview_n = min(_n_photos, 5)
+                _preview_cols = st.columns(_preview_n + (1 if _n_photos > 5 else 0))
+                for i in range(_preview_n):
+                    with _preview_cols[i]:
+                        st.image(item_photos[i]["photo_data"], width=48)
+                if _n_photos > 5:
+                    with _preview_cols[5]:
+                        st.caption(f"+{_n_photos - 5}")
 
-            with st.expander(f"📸 Fotos ya cargadas para este ítem ({_n_photos})", expanded=False):
-                for row_start in range(0, len(item_photos), 3):
-                    cols = st.columns(3)
-                    for j in range(3):
-                        idx = row_start + j
-                        if idx >= len(item_photos):
-                            break
-                        photo = item_photos[idx]
-                        with cols[j]:
-                            st.image(
-                                photo["photo_data"],
-                                caption=photo["photo_name"],
-                                use_container_width=True,
-                            )
-                            _del_confirm_key = f"_cap_confirm_del_{item_id}_{idx}"
-                            if st.session_state.get(_del_confirm_key):
-                                st.warning("¿Borrar esta foto?")
-                                dcol1, dcol2 = st.columns(2)
-                                with dcol1:
-                                    if st.button(
-                                        "Sí, borrar",
-                                        key=f"cdel_yes_{item_id}_{idx}",
-                                        type="primary",
-                                        use_container_width=True,
-                                    ):
-                                        if use_mongo:
-                                            db.delete_photo(str(photo["_id"]))
-                                            _get_counts.clear()
-                                        else:
-                                            st.session_state.cap_photos[item_id].pop(idx)
-                                            if not st.session_state.cap_photos[item_id]:
-                                                del st.session_state.cap_photos[item_id]
-                                        st.session_state.pop(_del_confirm_key, None)
-                                        st.toast("🗑️ Foto borrada")
-                                        st.rerun()
-                                with dcol2:
-                                    if st.button(
-                                        "Cancelar",
-                                        key=f"cdel_no_{item_id}_{idx}",
-                                        use_container_width=True,
-                                    ):
-                                        st.session_state.pop(_del_confirm_key, None)
-                                        st.rerun()
-                            else:
-                                if st.button(
-                                    "🗑️ Borrar",
-                                    key=f"cdel_{item_id}_{idx}",
-                                    help="Borrar esta foto",
+                with st.expander(f"📸 Fotos ya cargadas para este ítem ({_n_photos})", expanded=False):
+                    for row_start in range(0, len(item_photos), 3):
+                        cols = st.columns(3)
+                        for j in range(3):
+                            idx = row_start + j
+                            if idx >= len(item_photos):
+                                break
+                            photo = item_photos[idx]
+                            with cols[j]:
+                                st.image(
+                                    photo["photo_data"],
+                                    caption=photo["photo_name"],
                                     use_container_width=True,
-                                ):
-                                    st.session_state[_del_confirm_key] = True
-                                    st.rerun()
+                                )
+                                _del_confirm_key = f"_cap_confirm_del_{item_id}_{idx}"
+                                if st.session_state.get(_del_confirm_key):
+                                    st.warning("¿Borrar esta foto?")
+                                    dcol1, dcol2 = st.columns(2)
+                                    with dcol1:
+                                        if st.button(
+                                            "Sí, borrar",
+                                            key=f"cdel_yes_{item_id}_{idx}",
+                                            type="primary",
+                                            use_container_width=True,
+                                        ):
+                                            if use_mongo:
+                                                db.delete_photo(str(photo["_id"]))
+                                                _get_counts.clear()
+                                            else:
+                                                st.session_state.cap_photos[item_id].pop(idx)
+                                                if not st.session_state.cap_photos[item_id]:
+                                                    del st.session_state.cap_photos[item_id]
+                                            st.session_state.pop(_del_confirm_key, None)
+                                            st.toast("🗑️ Foto borrada")
+                                            st.rerun()
+                                    with dcol2:
+                                        if st.button(
+                                            "Cancelar",
+                                            key=f"cdel_no_{item_id}_{idx}",
+                                            use_container_width=True,
+                                        ):
+                                            st.session_state.pop(_del_confirm_key, None)
+                                            st.rerun()
+                                else:
+                                    if st.button(
+                                        "🗑️ Borrar",
+                                        key=f"cdel_{item_id}_{idx}",
+                                        help="Borrar esta foto",
+                                        use_container_width=True,
+                                    ):
+                                        st.session_state[_del_confirm_key] = True
+                                        st.rerun()
 
-    # ── 3. Evaluación ────────────────────────────────────────────────────
-    st.markdown("### ✍️ Evaluación")
+        # ── 3. Evaluación ────────────────────────────────────────────────────
+        st.divider()
+        st.markdown("### ✍️ Evaluación")
 
-    _prev_eval = _eval_map.get(item_id)
-    _status_key = f"cap_eval_status_{item_id}"
-    if _status_key not in st.session_state:
-        st.session_state[_status_key] = _prev_eval.get("status", "Conforme") if _prev_eval else "Conforme"
-    eval_status = st.session_state[_status_key]
+        _prev_eval = _eval_map.get(item_id)
+        _status_key = f"cap_eval_status_{item_id}"
+        if _status_key not in st.session_state:
+            st.session_state[_status_key] = _prev_eval.get("status", "Conforme") if _prev_eval else "Conforme"
+        eval_status = st.session_state[_status_key]
 
-    if not use_mongo:
-        st.warning("MongoDB no configurado — la evaluación no se puede guardar sin persistencia.")
+        if not use_mongo:
+            st.warning("MongoDB no configurado — la evaluación no se puede guardar sin persistencia.")
 
-    def _sel(status: str) -> str:
-        return "sel" if status == eval_status else "unsel"
+        def _sel(status: str) -> str:
+            return "sel" if status == eval_status else "unsel"
 
-    bcol1, bcol2, bcol3 = st.columns(3)
-    with bcol1:
-        if st.button(
-            "✅ Conforme", use_container_width=True, key=f"cap_btn_conforme_{item_id}_{_sel('Conforme')}"
-        ):
-            st.session_state[_status_key] = "Conforme"
-            st.rerun()
-    with bcol2:
-        if st.button(
-            "⚠️ Observación", use_container_width=True, key=f"cap_btn_observacion_{item_id}_{_sel('Observación')}"
-        ):
-            st.session_state[_status_key] = "Observación"
-            st.rerun()
-    with bcol3:
-        if st.button(
-            "❌ No conforme", use_container_width=True, key=f"cap_btn_noconforme_{item_id}_{_sel('No Conforme')}"
-        ):
-            st.session_state[_status_key] = "No Conforme"
-            st.rerun()
+        bcol1, bcol2, bcol3 = st.columns(3)
+        with bcol1:
+            if st.button(
+                "✅ Conforme", use_container_width=True, key=f"cap_btn_conforme_{item_id}_{_sel('Conforme')}"
+            ):
+                st.session_state[_status_key] = "Conforme"
+                st.rerun()
+        with bcol2:
+            if st.button(
+                "⚠️ Observación", use_container_width=True, key=f"cap_btn_observacion_{item_id}_{_sel('Observación')}"
+            ):
+                st.session_state[_status_key] = "Observación"
+                st.rerun()
+        with bcol3:
+            if st.button(
+                "❌ No conforme", use_container_width=True, key=f"cap_btn_noconforme_{item_id}_{_sel('No Conforme')}"
+            ):
+                st.session_state[_status_key] = "No Conforme"
+                st.rerun()
 
-    _nota_needed = eval_status != "Conforme"
-    _nota_default = _prev_eval.get("justificacion", "") if _prev_eval else ""
-    eval_nota = st.text_area(
-        "Nota — qué se observó" + (" (obligatoria)" if _nota_needed else " (opcional)"),
-        value=_nota_default,
-        key=f"cap_eval_nota_{item_id}",
-        placeholder="Ej: Exhibidora fuera de lugar, falta cartel de precios...",
-    )
-    _nota_ok = (not _nota_needed) or bool(eval_nota.strip())
-    if _nota_needed and not _nota_ok:
-        st.warning("Agregá una nota breve antes de guardar.")
-
-    if _prev_eval:
-        st.caption(
-            f"Última evaluación guardada: {STATUS_ICONS.get(_prev_eval.get('status',''), '')} "
-            f"{_prev_eval.get('status','')} — {_prev_eval.get('analyzed_at','')}"
+        _nota_needed = eval_status != "Conforme"
+        _nota_default = _prev_eval.get("justificacion", "") if _prev_eval else ""
+        eval_nota = st.text_area(
+            "Nota — qué se observó" + (" (obligatoria)" if _nota_needed else " (opcional)"),
+            value=_nota_default,
+            key=f"cap_eval_nota_{item_id}",
+            placeholder="Ej: Exhibidora fuera de lugar, falta cartel de precios...",
         )
+        _nota_ok = (not _nota_needed) or bool(eval_nota.strip())
+        if _nota_needed and not _nota_ok:
+            st.warning("Agregá una nota breve antes de guardar.")
 
-    # ── 4. Guardar (único botón) ────────────────────────────────────────
-    st.divider()
-    if st.button(
-        "✅ Guardar y siguiente",
-        type="primary",
-        use_container_width=True,
-        disabled=not _nota_ok or not use_mongo,
-        key=f"cap_save_{item_id}",
-    ):
-        ok = _persist_evaluation(local_name, fecha_str, section, selected, eval_status, eval_nota, tipo_auditoria)
-        saved_photo = False
-        try:
-            if camera_photo is not None:
-                compressed = compress_photo(camera_photo)
-                if use_mongo:
-                    name = db.next_photo_name(local_name, fecha_str, item_id)
-                    db.save_photo(local_name, fecha_str, section, item_id, compressed, name)
-                    _get_counts.clear()
-                else:
-                    code = item_id.replace(".", "")
-                    st.session_state.cap_photos.setdefault(item_id, [])
-                    n = len(st.session_state.cap_photos[item_id]) + 1
-                    st.session_state.cap_photos[item_id].append(
-                        {"data": compressed, "name": f"{code}_{n:03d}.jpg"}
-                    )
-                saved_photo = True
-            if uploaded:
-                for f in uploaded:
-                    compressed = compress_photo(f)
+        if _prev_eval:
+            st.caption(
+                f"Última evaluación guardada: {STATUS_ICONS.get(_prev_eval.get('status',''), '')} "
+                f"{_prev_eval.get('status','')} — {_prev_eval.get('analyzed_at','')}"
+            )
+
+        # ── 4. Guardar (único botón) ────────────────────────────────────────
+        st.divider()
+        if st.button(
+            "✅ Guardar y siguiente",
+            type="primary",
+            use_container_width=True,
+            disabled=not _nota_ok or not use_mongo,
+            key=f"cap_save_{item_id}",
+        ):
+            ok = _persist_evaluation(local_name, fecha_str, section, selected, eval_status, eval_nota, tipo_auditoria)
+            saved_photo = False
+            try:
+                if camera_photo is not None:
+                    compressed = compress_photo(camera_photo)
                     if use_mongo:
                         name = db.next_photo_name(local_name, fecha_str, item_id)
                         db.save_photo(local_name, fecha_str, section, item_id, compressed, name)
+                        _get_counts.clear()
                     else:
                         code = item_id.replace(".", "")
                         st.session_state.cap_photos.setdefault(item_id, [])
@@ -749,90 +741,104 @@ if selected:
                         st.session_state.cap_photos[item_id].append(
                             {"data": compressed, "name": f"{code}_{n:03d}.jpg"}
                         )
-                if use_mongo:
-                    _get_counts.clear()
-                saved_photo = True
-        except Exception as e:
-            st.error(f"No se pudo guardar la foto: {e}")
+                    saved_photo = True
+                if uploaded:
+                    for f in uploaded:
+                        compressed = compress_photo(f)
+                        if use_mongo:
+                            name = db.next_photo_name(local_name, fecha_str, item_id)
+                            db.save_photo(local_name, fecha_str, section, item_id, compressed, name)
+                        else:
+                            code = item_id.replace(".", "")
+                            st.session_state.cap_photos.setdefault(item_id, [])
+                            n = len(st.session_state.cap_photos[item_id]) + 1
+                            st.session_state.cap_photos[item_id].append(
+                                {"data": compressed, "name": f"{code}_{n:03d}.jpg"}
+                            )
+                    if use_mongo:
+                        _get_counts.clear()
+                    saved_photo = True
+            except Exception as e:
+                st.error(f"No se pudo guardar la foto: {e}")
 
-        if ok:
-            st.toast(
-                "✅ Evaluación guardada" + (" con foto" if saved_photo else ""),
-                icon="✅",
-            )
-            if saved_photo:
-                st.session_state["_cap_photo_round"] += 1
-            _cap_advance()
-            st.rerun()
+            if ok:
+                st.toast(
+                    "✅ Evaluación guardada" + (" con foto" if saved_photo else ""),
+                    icon="✅",
+                )
+                if saved_photo:
+                    st.session_state["_cap_photo_round"] += 1
+                _cap_advance()
+                st.rerun()
 
 # ── Finalizar ─────────────────────────────────────────────────────────────
-
-st.divider()
-st.markdown("### ✅ Finalizar")
 
 tp = _total_photos(local_name, fecha_str)
 missing = [c for c in CRITERIA if c["id"] not in _eval_map]
 
-if items_covered >= total_items and total_items > 0:
-    # ── Pantalla de cierre ──────────────────────────────────────────────
-    _status_counts = {"Conforme": 0, "Observación": 0, "No Conforme": 0}
-    for r in _eval_map.values():
-        s = r.get("status", "Conforme")
-        if s in _status_counts:
-            _status_counts[s] += 1
-    _pct_conforme = round(_status_counts["Conforme"] / total_items * 100) if total_items else 0
-    _n_desvios = _status_counts["Observación"] + _status_counts["No Conforme"]
+with st.container(border=True):
+    st.markdown("### ✅ Finalizar")
 
-    _celebrate_key = f"_cap_celebrated_{local_name}_{fecha_str}"
-    if not st.session_state.get(_celebrate_key):
-        st.balloons()
-        st.session_state[_celebrate_key] = True
+    if items_covered >= total_items and total_items > 0:
+        # ── Pantalla de cierre ──────────────────────────────────────────────
+        _status_counts = {"Conforme": 0, "Observación": 0, "No Conforme": 0}
+        for r in _eval_map.values():
+            s = r.get("status", "Conforme")
+            if s in _status_counts:
+                _status_counts[s] += 1
+        _pct_conforme = round(_status_counts["Conforme"] / total_items * 100) if total_items else 0
+        _n_desvios = _status_counts["Observación"] + _status_counts["No Conforme"]
 
-    st.success(f"🎉 ¡Auditoría completa en **{local_name}**! Evaluaste los {total_items} ítems.")
-    ccol1, ccol2, ccol3 = st.columns(3)
-    ccol1.metric("✅ Conforme", _status_counts["Conforme"])
-    ccol2.metric("⚠️ Observación", _status_counts["Observación"])
-    ccol3.metric("❌ No Conforme", _status_counts["No Conforme"])
-    st.caption(
-        f"**{_pct_conforme}%** de conformidad global · **{tp}** fotos cargadas · "
-        f"Los **{_n_desvios}** desvíos detectados quedaron cargados en 📊 Planes de Mejora."
-    )
+        _celebrate_key = f"_cap_celebrated_{local_name}_{fecha_str}"
+        if not st.session_state.get(_celebrate_key):
+            st.balloons()
+            st.session_state[_celebrate_key] = True
 
-elif items_covered > 0:
-    st.markdown(
-        f"**{items_covered} de {total_items}** ítems evaluados "
-        f"({tp} fotos, {_total_size_str(local_name, fecha_str)})"
-    )
-    if missing:
-        with st.expander(f"ℹ️ {len(missing)} ítems sin evaluar"):
-            for sec_key in SECTIONS:
-                sec_missing = [m for m in missing if m["section"] == sec_key]
-                if sec_missing:
-                    st.markdown(
-                        f"**{sec_key}. {SECTION_SHORT[sec_key]}** ({len(sec_missing)})"
-                    )
-                    for m in sec_missing:
-                        st.markdown(f"- {m['id']} — {m['name'][:55]}...")
-
-    if use_mongo:
-        st.success(
-            "✅ La evaluación se guarda en la nube a medida que avanzás. "
-            "Podés cerrar el navegador tranquilo."
+        st.success(f"🎉 ¡Auditoría completa en **{local_name}**! Evaluaste los {total_items} ítems.")
+        ccol1, ccol2, ccol3 = st.columns(3)
+        ccol1.metric("✅ Conforme", _status_counts["Conforme"])
+        ccol2.metric("⚠️ Observación", _status_counts["Observación"])
+        ccol3.metric("❌ No Conforme", _status_counts["No Conforme"])
+        st.caption(
+            f"**{_pct_conforme}%** de conformidad global · **{tp}** fotos cargadas · "
+            f"Los **{_n_desvios}** desvíos detectados quedaron cargados en 📊 Planes de Mejora."
         )
+
+    elif items_covered > 0:
+        st.markdown(
+            f"**{items_covered} de {total_items}** ítems evaluados "
+            f"({tp} fotos, {_total_size_str(local_name, fecha_str)})"
+        )
+        if missing:
+            with st.expander(f"ℹ️ {len(missing)} ítems sin evaluar"):
+                for sec_key in SECTIONS:
+                    sec_missing = [m for m in missing if m["section"] == sec_key]
+                    if sec_missing:
+                        st.markdown(
+                            f"**{sec_key}. {SECTION_SHORT[sec_key]}** ({len(sec_missing)})"
+                        )
+                        for m in sec_missing:
+                            st.markdown(f"- {m['id']} — {m['name'][:55]}...")
+
+        if use_mongo:
+            st.success(
+                "✅ La evaluación se guarda en la nube a medida que avanzás. "
+                "Podés cerrar el navegador tranquilo."
+            )
+        else:
+            local_slug = (local_name.strip().replace(" ", "-") or "Local")
+            zip_data = _build_zip(local_name, fecha_str)
+            st.download_button(
+                "📥 Descargar ZIP (fotos)",
+                data=zip_data,
+                file_name=f"auditoria_{fecha_str}_{local_slug}.zip",
+                mime="application/zip",
+                use_container_width=True,
+                type="primary",
+            )
+            st.info("💡 Descargá el ZIP antes de cerrar — sin MongoDB las fotos no persisten.")
     else:
-        local_slug = (local_name.strip().replace(" ", "-") or "Local")
-        zip_data = _build_zip(local_name, fecha_str)
-        st.download_button(
-            "📥 Descargar ZIP (fotos)",
-            data=zip_data,
-            file_name=f"auditoria_{fecha_str}_{local_slug}.zip",
-            mime="application/zip",
-            use_container_width=True,
-            type="primary",
-        )
-        st.info("💡 Descargá el ZIP antes de cerrar — sin MongoDB las fotos no persisten.")
-else:
-    st.caption("Empezá a evaluar ítems para poder finalizar.")
+        st.caption("Empezá a evaluar ítems para poder finalizar.")
 
 # ── Footer ────────────────────────────────────────────────────────────────
 
