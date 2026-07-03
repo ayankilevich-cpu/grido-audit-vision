@@ -771,6 +771,34 @@ if selected:
                 _cap_advance()
                 st.rerun()
 
+        # ── 5. Finalizar auditoría (disponible en cualquier momento) ────────
+        st.caption(
+            "¿Ya terminaste? Podés cerrar la auditoría cuando quieras: queda "
+            "**completa** si evaluaste los 61 ítems, o **parcial** si faltan algunos."
+        )
+        if st.button(
+            "🏁 Finalizar auditoría",
+            use_container_width=True,
+            disabled=not use_mongo or items_covered == 0,
+            key="cap_finalize_btn",
+        ):
+            _final_tipo = "completa" if items_covered >= total_items else "parcial"
+            db.upsert_auditoria(
+                local=local_name,
+                fecha=fecha_str,
+                tipo=_final_tipo,
+                created_by=st.session_state.get("rol", "operativo"),
+            )
+            if _final_tipo == "completa":
+                st.toast(
+                    f"🏁 Auditoría COMPLETA finalizada — {items_covered}/{total_items} ítems", icon="🏁"
+                )
+            else:
+                st.toast(
+                    f"🏁 Auditoría PARCIAL finalizada — {items_covered}/{total_items} ítems", icon="🏁"
+                )
+            st.rerun()
+
 # ── Finalizar ─────────────────────────────────────────────────────────────
 
 tp = _total_photos(local_name, fecha_str)
