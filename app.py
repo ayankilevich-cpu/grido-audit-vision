@@ -79,6 +79,16 @@ st.markdown(
     background: rgba(230, 51, 41, 0.25) !important;
     border: none !important;
 }
+
+/* Los avisos st.toast() (ej: "Evaluación guardada") aparecen pegados abajo
+   y quedaban tapados por la barra de navegación inferior fija (z-index
+   9999). Los subimos por encima de la barra y les damos más z-index para
+   que siempre se alcancen a ver. */
+div[data-testid="stToast"],
+div[data-testid*="Toast"] {
+    z-index: 999999 !important;
+    bottom: 90px !important;
+}
 </style>
 """,
     unsafe_allow_html=True,
